@@ -1,11 +1,18 @@
-import {db} from '../db/client'
+import db from '../db/client'
 
-export default defineEventHandler((event) => {
-    const weekId = getQuery(event).weekId
+export default defineEventHandler(async (event) => {
+    const body = await readBody(event)
 
-    return db.prepare(`
-        SELECT *
-        FROM presences
-        WHERE week_id = ?
-    `).all(weekId)
+    const { user_id, date, status } = body
+
+    const stmt = db.prepare(`
+    INSERT INTO presences (user_id, date, status)
+    VALUES (?, ?, ?)
+    ON CONFLICT(user_id, date)
+    DO UPDATE SET status = excluded.status
+  `)
+
+    stmt.run(user_id, date, status)
+
+    return { success: true }
 })

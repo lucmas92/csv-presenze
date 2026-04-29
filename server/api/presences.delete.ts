@@ -3,20 +3,12 @@ import db from '../db/client'
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
-    const { user_id, date, status } = body
+    const { user_id, date } = body
 
-    console.log('user_id', user_id)
-    console.log('date', date)
-    console.log('status', status)
-
-    const stmt = db.prepare(`
-    INSERT INTO presences (user_id, date, status)
-    VALUES (?, ?, ?)
-    ON CONFLICT(user_id, date)
-    DO UPDATE SET status = excluded.status
-  `)
-
-    stmt.run(user_id, date, status)
+    db.prepare(`
+    DELETE FROM presences
+    WHERE user_id = ? AND date = ?
+  `).run(user_id, date)
 
     return { success: true }
 })

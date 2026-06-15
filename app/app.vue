@@ -33,7 +33,7 @@ body, html {
 }
 
 .main {
-  padding: 1rem;
+  padding: 0 1rem;
 }
 
 .header {

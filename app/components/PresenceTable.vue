@@ -10,6 +10,8 @@ import {
   MoveRight,
   NotebookPen
 } from 'lucide-vue-next'
+import Legend from '~/components/Legend.vue'
+import Widget from '~/components/Widget.vue'
 import {getCurrentWeek} from "~/utils/dates.ts";
 
 const notesDraft = ref({})
@@ -18,6 +20,7 @@ const modal = useTemplateRef('modal')
 const currentMonday = ref(getCurrentWeek()[0])
 const selectedUserId = ref(null)
 const selectedDate = ref(null)
+const today = ref(new Date().toISOString().slice(0, 10))
 
 // 📅 settimana corrente
 const weekDays = computed(() =>
@@ -76,6 +79,24 @@ const {data: presencesData, refresh: refreshPresences} = await useFetch('/api/pr
   watch: [from, to]
 })
 
+const countByStatus = computed(() => {
+  if (!presencesData.value) return {}
+
+  return presencesData.value
+      .filter(item => item.date === today.value)
+      .reduce((acc, item) => {
+        acc[item.status] = (acc[item.status] || 0) + 1;
+        return acc;
+      }, {});
+})
+
+const countToday = computed(() => {
+  if (!presencesData.value) return {}
+  return presencesData.value
+      .filter(item => item.date === today.value)
+      .length
+})
+
 const presences = computed(() => {
   const map = {}
 
@@ -112,8 +133,8 @@ const toggle = async (userId, date) => {
   let next = 'office'
 
   // PER GESTIONE AVANZATA STATI
-  if (current === 'office') next = 'holiday'
-  // else if (current === 'remote') next = 'holiday'
+  if (current === 'office') next = 'remote'
+  else if (current === 'remote') next = 'holiday'
   else if (current === 'holiday') next = null // 👉 vuoto = delete
 
   if (next === null) {
@@ -177,9 +198,9 @@ const hasNote = (userId, date) => {
 }
 
 const getClass = (status) => {
-  if (status === 'office') return 'bg-green'
-  if (status === 'remote') return 'bg-gray'
-  if (status === 'holiday') return 'bg-orange'
+  if (status === 'office') return 'bg-green-200'
+  if (status === 'remote') return 'bg-gray-200'
+  if (status === 'holiday') return 'bg-orange-200'
   return ''
 }
 
@@ -191,45 +212,68 @@ const showAddNoteModal = (userId, date) => {
 </script>
 
 <template>
-  <div class="w-100 mx-auto xl:w-3/4">
-    <div class="flex flex-col sm:flex-row justify-between items-center px-1.5 py-2">
-      <span class="range">{{ from }} <MoveRight class="inline mx-2"/> {{ to }}</span>
-      <div class="flex flex-col items-center">
-        <div class="flex gap-2 mx-auto">
-          <button class="btn" @click="prevWeek">
-            <ChevronLeft :size="18"/>
-          </button>
-
-          <button class="btn primary w-1/2" @click="goToCurrentWeek">
-            <Calendar :size="16"/>
-            Oggi
-          </button>
-
-          <button class="btn" @click="nextWeek">
-            <ChevronRight :size="18"/>
-          </button>
+  <div class="w-100 mx-auto">
+    <div id="dashboard" class="flex flex-col lg:flex-row justify-between items-center gap-6">
+      <h3 class="font-bold text-2xl">STATISTICHE OGGI</h3>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 items-center justify-center py-1">
+        <Widget class="bg-green-200" :count="countByStatus['office'] ?? 0" description="Presenti">
+          <Briefcase :size="14"/>
+        </Widget>
+        <Widget class="bg-gray-200" :count="countByStatus['remote'] ?? 0" description="Da casa">
+          <Home :size="14"/>
+        </Widget>
+        <Widget class="bg-orange-200" :count="countByStatus['holiday'] ?? 0" description="In ferie">
+          <Plane :size="14"/>
+        </Widget>
+        <Widget :count="users.length - countToday" description="Da compilare">
+          <Plane :size="14"/>
+        </Widget>
+      </div>
+    </div>
+    <div class="flex flex-col lg:flex-row justify-between items-center px-1.5 py-2">
+      <Legend/>
+      <div class="flex gap-2 items-center">
+        <div class="range">{{ from }}
+          <MoveRight class="inline mx-2"/>
+          {{ to }}
         </div>
+        <div class="flex items-center">
+          <div class="flex gap-2 mx-auto">
+            <button class="btn" @click="prevWeek">
+              <ChevronLeft :size="18"/>
+            </button>
 
+            <button class="btn primary w-1/2" @click="goToCurrentWeek">
+              <Calendar :size="16"/>
+              <span class="hidden md:inline-block">Oggi</span>
+            </button>
+
+            <button class="btn" @click="nextWeek">
+              <ChevronRight :size="18"/>
+            </button>
+          </div>
+
+        </div>
       </div>
     </div>
 
     <div class="table-wrap">
       <table class="table">
-        <thead class="table w-full table-fixed">
-        <tr>
-          <th>Nome</th>
-          <th v-for="d in weekDays" :key="d">
+        <thead class="table w-full table-fixed shadow-md">
+        <tr class="table w-full table-fixed">
+          <th></th>
+          <th :class="{'active-day': d === today}" v-for="d in weekDays" :key="d">
             <span class="date" v-html="formatDate(d)"></span>
             <span v-if="presencesCount[d]">({{ presencesCount[d] }})</span>
           </th>
         </tr>
         </thead>
 
-        <tbody class="block overflow-y-auto" style="max-height: 65vh; min-height: 300px;">
+        <tbody class="table-fixed block overflow-y-auto" style="max-height: 65vh; padding-left: 5px; min-height: 300px;">
         <tr v-for="user in users" :key="user.id" class="table w-full table-fixed">
           <td class="name">{{ user.name }}</td>
 
-          <td v-for="date in weekDays" :key="date" class="cell" style="">
+          <td :class="{'active-day': date === today}" v-for="date in weekDays" :key="date" class="cell" style="">
             <div style="display: flex; justify-content: center;">
               <button type="button"
                       class="button status"
@@ -243,7 +287,7 @@ const showAddNoteModal = (userId, date) => {
               </button>
               <button type="button" class="button addNote"
                       @click="showAddNoteModal(user.id, date)">
-                <NotebookPen :class="{'active': hasNote(user.id, date)}"/>
+                <NotebookPen :size="15" :class="{'active': hasNote(user.id, date)}"/>
               </button>
             </div>
           </td>
@@ -301,6 +345,7 @@ const showAddNoteModal = (userId, date) => {
   font-size: 18px;
   color: #64748b;
 }
+
 th {
   background: #f1f5f9;
   font-weight: 600;
@@ -325,14 +370,14 @@ td {
 
 
 .button {
-  width: 44px;
+  width: 50px;
   height: 34px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 6px;
+  margin-bottom: 0;
   cursor: pointer;
 }
 
@@ -345,37 +390,15 @@ td {
   border: 1px solid transparent;
 }
 
-.bg-green {
-  background: #dcfce7;
-}
-
-.bg-gray {
-  background: #f1f5f9;
-}
-
-.bg-orange {
-  background: #ffedd5;
-}
-
-.note {
-  width: 100%;
-  border: none;
-  border-radius: 0;
-  font-size: 11px;
-  padding: 4px;
-  resize: none;
-}
-
-.note:focus {
-  outline: none;
-  background-color: rgba(200, 200, 200, 0.1);
-}
-
 .date {
   margin-right: .1rem;
 }
 
 .date * {
   display: block;
+}
+
+.active-day{
+  background: rgb(5 32 74 / 0.15);
 }
 </style>

@@ -4,6 +4,6 @@ import PresenceTable from '~/components/PresenceTable.vue'
 
 <template>
   <div>
-    <PresenceTable />
+    <PresenceTable/>
   </div>
 </template>

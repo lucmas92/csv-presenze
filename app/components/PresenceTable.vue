@@ -191,7 +191,7 @@ const showAddNoteModal = (userId, date) => {
 </script>
 
 <template>
-  <div class="w-100">
+  <div class="w-100 mx-auto xl:w-3/4">
     <div class="flex flex-col sm:flex-row justify-between items-center px-1.5 py-2">
       <span class="range">{{ from }} <MoveRight class="inline mx-2"/> {{ to }}</span>
       <div class="flex flex-col items-center">
@@ -273,11 +273,6 @@ const showAddNoteModal = (userId, date) => {
 .active {
   color: red;
   font-weight: bold;
-}
-
-.title {
-  font-size: 18px;
-  font-weight: 600;
 }
 
 .btn {

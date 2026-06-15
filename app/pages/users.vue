@@ -72,8 +72,8 @@ const deleteUser = async (user) => {
 </script>
 
 <template>
-  <div class="page">
-    <div class="header">
+  <div class="w-100 mx-auto md:w-2/3">
+    <div class="flex flex-col sm:flex-row justify-between items-center px-1.5 py-2">
       <h2 class="title">Utenti</h2>
 
       <div class="nav">
@@ -81,7 +81,6 @@ const deleteUser = async (user) => {
         <div class="card">
           <input
               v-model="name"
-              class="new-name"
               placeholder="Nome utente..."
               @keyup.enter="createUser"
           />
@@ -131,18 +130,6 @@ const deleteUser = async (user) => {
   </div>
 </template>
 <style scoped>
-.page {
-  padding: 20px;
-  font-family: system-ui, sans-serif;
-  background: #f8fafc;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
 
 .title {
   font-size: 18px;
@@ -165,7 +152,6 @@ const deleteUser = async (user) => {
 }
 
 button {
-  background: none;
   align-items: center;
   margin: 0 .5rem;
   gap: 6px;
@@ -198,8 +184,12 @@ td {
 input {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  padding: 7px 1rem;
-  width: 150px;
+  padding: 3px 1rem;
+  width: 200px;
   font-size: 16px;
+}
+
+.table {
+  min-width: 400px !important;
 }
 </style>

@@ -6,11 +6,16 @@ import {
 </script>
 <template>
   <div>
-    <header class="header">
-      <NuxtLink to="/">
+    <header class="flex bg-gray-200 justify-center gap-3 p-2">
+      <NuxtLink class="hover:bg-gray-400 hover:text-gray-100 font-bold py-3 px-2 flex items-center gap-2"
+                to="/">
+        Calendario
         <CalendarDays/>
       </NuxtLink>
-      <NuxtLink to="/users">
+      <div class="border-r border-gray-800"/>
+      <NuxtLink class="hover:bg-gray-400 hover:text-gray-100 py-3 px-2 font-bold flex items-center gap-2"
+                to="/users">
+        Lista Utenti
         <Users/>
       </NuxtLink>
     </header>
@@ -45,7 +50,7 @@ body, html {
 
 .table {
   width: 100%;
-  min-width: 800px;
+  min-width: 600px;
   border-collapse: collapse;
 }
 

@@ -96,14 +96,14 @@ const deleteUser = async (user) => {
     <!-- LISTA -->
     <div class="table-wrap">
       <table class="table">
-        <thead>
+        <thead class="table w-full table-fixed">
         <tr>
           <th>Nome</th>
           <th>&nbsp;</th>
         </tr>
         </thead>
-        <tbody>
-        <tr v-for="user in users" :key="user.id">
+        <tbody class="block overflow-y-auto" style="max-height: 65vh; min-height: 300px;">
+        <tr v-for="user in users" :key="user.id" class="table w-full table-fixed">
           <td class="name">
             <div v-if="!editing[user.id]" style="padding: .5rem 1rem;">{{ user.name }}</div>
             <span v-else>
@@ -158,21 +158,6 @@ const deleteUser = async (user) => {
 .card {
   align-items: center;
   display: flex;
-}
-
-.table-wrap {
-  width: 90%;
-  margin: 0 auto;
-  min-width: 400px;
-  overflow: auto;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
 }
 
 .actions {

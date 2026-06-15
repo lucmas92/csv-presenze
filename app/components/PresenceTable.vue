@@ -192,7 +192,7 @@ const showAddNoteModal = (userId, date) => {
 
 <template>
   <div class="w-100">
-    <div class="flex justify-between items-center px-1.5 py-2">
+    <div class="flex flex-col sm:flex-row justify-between items-center px-1.5 py-2">
       <span class="range">{{ from }} <MoveRight class="inline mx-2"/> {{ to }}</span>
       <div class="flex flex-col items-center">
         <div class="flex gap-2 mx-auto">
@@ -200,7 +200,7 @@ const showAddNoteModal = (userId, date) => {
             <ChevronLeft :size="18"/>
           </button>
 
-          <button class="btn primary" @click="goToCurrentWeek">
+          <button class="btn primary w-1/2" @click="goToCurrentWeek">
             <Calendar :size="16"/>
             Oggi
           </button>
@@ -225,7 +225,7 @@ const showAddNoteModal = (userId, date) => {
         </tr>
         </thead>
 
-        <tbody class="block overflow-y-auto" style="max-height: 70vh; min-height: 300px;">
+        <tbody class="block overflow-y-auto" style="max-height: 65vh; min-height: 300px;">
         <tr v-for="user in users" :key="user.id" class="table w-full table-fixed">
           <td class="name">{{ user.name }}</td>
 
@@ -306,20 +306,6 @@ const showAddNoteModal = (userId, date) => {
   font-size: 18px;
   color: #64748b;
 }
-
-.table-wrap {
-  overflow: auto;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-}
-
-.table {
-  width: 100%;
-  min-width: 800px;
-  border-collapse: collapse;
-}
-
 th {
   background: #f1f5f9;
   font-weight: 600;

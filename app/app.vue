@@ -42,4 +42,18 @@ body, html {
 .header a {
   color: black
 }
+
+.table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+}
+
+.table-wrap {
+  overflow: auto;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
 </style>

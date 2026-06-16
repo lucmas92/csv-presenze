@@ -181,14 +181,6 @@ td {
   vertical-align: top;
 }
 
-input {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 3px 1rem;
-  width: 200px;
-  font-size: 16px;
-}
-
 .table {
   min-width: 400px !important;
 }

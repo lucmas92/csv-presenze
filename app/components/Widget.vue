@@ -16,8 +16,8 @@ defineProps({
       <slot/>
     </div>
     <div class="flex flex-col">
-      <span id="counter">{{count}}</span>
-      <span id="description">{{description}}</span>
+      <span id="counter" class="text-xl">{{count}}</span>
+      <span id="description" class="text-sm text-gray-500">{{description}}</span>
     </div>
   </div>
 </template>

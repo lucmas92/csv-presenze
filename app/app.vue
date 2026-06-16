@@ -1,7 +1,8 @@
 <script setup>
 import {
   Users,
-  CalendarDays
+  CalendarDays,
+  LucideSettings2
 } from 'lucide-vue-next'
 </script>
 <template>
@@ -17,6 +18,12 @@ import {
                 to="/users">
         Lista Utenti
         <Users/>
+      </NuxtLink>
+      <div class="border-r border-gray-800"/>
+      <NuxtLink class="hover:bg-gray-400 hover:text-gray-100 py-3 px-2 font-bold flex items-center gap-2"
+                to="/settings">
+        Impostazioni
+        <LucideSettings2/>
       </NuxtLink>
     </header>
     <main class="main">
@@ -59,6 +66,14 @@ body, html {
   background: white;
   border-radius: 12px;
   border: 1px solid #e5e7eb;
+}
+
+input {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 3px 1rem;
+  width: 200px;
+  font-size: 16px;
 }
 
 </style>

@@ -20,6 +20,7 @@ const modal = useTemplateRef('modal')
 const currentMonday = ref(getCurrentWeek()[0])
 const selectedUserId = ref(null)
 const selectedDate = ref(null)
+const searchQuery = ref('')
 const today = ref(new Date().toISOString().slice(0, 10))
 
 // 📅 settimana corrente
@@ -77,6 +78,19 @@ const {data: presencesData, refresh: refreshPresences} = await useFetch('/api/pr
     to
   },
   watch: [from, to]
+})
+
+const availableUsers = computed(() => {
+  if (!users.value) return [{name: '', id: 0}]
+
+  if (searchQuery.value === '')
+    return users.value.sort((a, b) => a.name.localeCompare(b.name))
+
+  const filtered = users.value.filter((user) => {
+    return user['name'].toLowerCase().includes(searchQuery.value.toLowerCase())
+  })
+  console.log(filtered)
+  return filtered.sort((a, b) => a.name.localeCompare(b.name))
 })
 
 const countByStatus = computed(() => {
@@ -226,7 +240,7 @@ const showAddNoteModal = (userId, date) => {
           <Plane :size="14"/>
         </Widget>
         <Widget :count="users.length - countToday" description="Da compilare">
-          <Plane :size="14"/>
+          <Minus :size="14"/>
         </Widget>
       </div>
     </div>
@@ -256,12 +270,11 @@ const showAddNoteModal = (userId, date) => {
         </div>
       </div>
     </div>
-
     <div class="table-wrap">
       <table class="table">
         <thead class="table w-full table-fixed shadow-md">
         <tr class="table w-full table-fixed">
-          <th></th>
+          <th><input type="text" class="search" v-model="searchQuery" placeholder="Cerca..."></th>
           <th :class="{'active-day': d === today}" v-for="d in weekDays" :key="d">
             <span class="date" v-html="formatDate(d)"></span>
             <span v-if="presencesCount[d]">({{ presencesCount[d] }})</span>
@@ -269,8 +282,9 @@ const showAddNoteModal = (userId, date) => {
         </tr>
         </thead>
 
-        <tbody class="table-fixed block overflow-y-auto" style="max-height: 65vh; padding-left: 5px; min-height: 300px;">
-        <tr v-for="user in users" :key="user.id" class="table w-full table-fixed">
+        <tbody class="table-fixed block overflow-y-auto"
+               style="max-height: 65vh; padding-left: 5px; min-height: 300px;">
+        <tr v-for="user in availableUsers" :key="user.id" class="table w-full table-fixed">
           <td class="name">{{ user.name }}</td>
 
           <td :class="{'active-day': date === today}" v-for="date in weekDays" :key="date" class="cell" style="">
@@ -398,7 +412,7 @@ td {
   display: block;
 }
 
-.active-day{
+.active-day {
   background: rgb(5 32 74 / 0.15);
 }
 </style>

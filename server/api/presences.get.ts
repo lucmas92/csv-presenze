@@ -3,8 +3,8 @@ import db from '../db/client'
 export default defineEventHandler((event) => {
     const query = getQuery(event)
 
-    const from = query.from as string
-    const to = query.to as string
+    const from = query.fromQuery as string
+    const to = query.toQuery as string
 
     if (!from || !to) {
         return []

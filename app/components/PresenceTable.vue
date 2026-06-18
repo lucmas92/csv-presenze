@@ -1,39 +1,57 @@
 <script setup>
 import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
   Briefcase,
   Home,
   Plane,
   Minus,
-  MoveRight,
-  NotebookPen
+  ChevronLeft,
+  ChevronRight,
+  Star
 } from 'lucide-vue-next'
 import Legend from '~/components/Legend.vue'
 import Widget from '~/components/Widget.vue'
 import {getCurrentWeek} from "~/utils/dates.ts";
+import Header from "./Header.vue";
+import BottomSheet from "./BottomSheet.vue";
+import {initials} from "../utils/utils";
 
 const notesDraft = ref({})
 const modal = useTemplateRef('modal')
 
-const currentMonday = ref(getCurrentWeek()[0])
+const currentMonday = ref(getCurrentWeek()[1])
 const selectedUserId = ref(null)
+const selectedUser = ref(null)
+const selectedUserNote = ref(null)
 const selectedDate = ref(null)
 const searchQuery = ref('')
-const today = ref(new Date().toISOString().slice(0, 10))
+const bottomSheetOpen = ref(false)
+const today = ref(new Date().toLocaleDateString('sv-SE'))
 
 // 📅 settimana corrente
 const weekDays = computed(() =>
     getWeekFromMonday(currentMonday.value)
 )
 
+const classDayStripButton = (d) => {
+  return d === today.value ? 'bg-blue-500 text-white' : 'text-slate-500'
+}
+
+const shortDayName = (d) => {
+  const date = new Date(d)
+  return date.toLocaleDateString('it', {weekday: 'short'}).toUpperCase()
+}
+
+const dayNum = (d) => {
+  const date = new Date(d)
+  return date.getDate()
+}
+
 const formatDate = (d) => {
   const date = new Date(d)
   const dayName = date.toLocaleDateString('it', {weekday: 'short'}).toUpperCase()
   const dayNumber = date.getDate()
   const monthName = date.toLocaleDateString('it', {month: 'short'})
-  return `<span>${dayName}</span> ${dayNumber} ${monthName}`
+  return `<span>${dayName}</span><br/> ${dayNumber}`
 }
 
 const formatDate2 = (d) => {
@@ -44,16 +62,33 @@ const formatDate2 = (d) => {
   return `<span>${dayName}</span> ${dayNumber} ${monthName}`
 }
 
-const from = computed(() => weekDays.value[0])
-const to = computed(() => weekDays.value[4])
+const fromQuery = computed(() => weekDays.value[0])
+const toQuery = computed(() => weekDays.value[4])
+
+const from = computed(() => {
+  const date = new Date(weekDays.value[0])
+  return date.toLocaleDateString('it',
+      {
+        day: 'numeric',
+        month: 'short'
+      })
+})
+const to = computed(() => {
+  const date = new Date(weekDays.value[4])
+  return date.toLocaleDateString('it',
+      {
+        day: 'numeric',
+        month: 'short'
+      })
+})
 
 const {data: users, refresh: refreshUsers} = await useFetch('/api/users')
 const {data: notesData, refresh: refreshNotes} = await useFetch('/api/notes', {
   query: {
-    from,
-    to
+    fromQuery,
+    toQuery
   },
-  watch: [from, to]
+  watch: [fromQuery, toQuery]
 })
 
 watch(
@@ -74,10 +109,10 @@ watch(
 // 📦 dati DB
 const {data: presencesData, refresh: refreshPresences} = await useFetch('/api/presences', {
   query: {
-    from,
-    to
+    fromQuery,
+    toQuery
   },
-  watch: [from, to]
+  watch: [fromQuery, toQuery]
 })
 
 const availableUsers = computed(() => {
@@ -89,7 +124,6 @@ const availableUsers = computed(() => {
   const filtered = users.value.filter((user) => {
     return user['name'].toLowerCase().includes(searchQuery.value.toLowerCase())
   })
-  console.log(filtered)
   return filtered.sort((a, b) => a.name.localeCompare(b.name))
 })
 
@@ -136,45 +170,8 @@ const presencesCount = computed(() => {
   }, {});
 })
 
-
-/**
- * toggle stato
- */
-const toggle = async (userId, date) => {
-  const key = `${userId}-${date}`
-  const current = presences.value[key]
-
-  let next = 'office'
-
-  // PER GESTIONE AVANZATA STATI
-  if (current === 'office') next = 'remote'
-  else if (current === 'remote') next = 'holiday'
-  else if (current === 'holiday') next = null // 👉 vuoto = delete
-
-  if (next === null) {
-    // 🧹 DELETE
-    await $fetch('/api/presences', {
-      method: 'DELETE',
-      body: {user_id: userId, date}
-    })
-
-    delete presences.value[key]
-  } else {
-    // 💾 UPSERT
-    await $fetch('/api/presences', {
-      method: 'POST',
-      body: {user_id: userId, date, status: next}
-    })
-
-    presences.value[key] = next
-  }
-  await refreshPresences()
-}
-
 let timeout
-const saveNote = async () => {
-  const userId = selectedUserId.value
-  const date = selectedDate.value
+const onSaveNote = async (userId, date, note) => {
   const key = `${userId}-${date}`
 
   await $fetch('/api/notes', {
@@ -182,11 +179,11 @@ const saveNote = async () => {
     body: {
       user_id: userId,
       date,
-      content: notesDraft.value[key]
+      content: note
     }
   })
 
-  modal.value.close()
+  notesDraft.value[key] = note
 
   await refreshNotes()
 }
@@ -210,12 +207,23 @@ const nextWeek = () => {
 const hasNote = (userId, date) => {
   return !!notesDraft.value[`${userId}-${date}`]
 }
+const getDayPillClass = (date, status) => {
+  let classes = date === today.value ? 'today-pill ' : ''
+  switch (status) {
+    case 'office':
+      classes = classes += 'bg-green-200'
+      break
+    case 'remote':
+      classes = classes += 'bg-gray-200'
+      break
+    case 'holiday':
+      classes = classes += 'bg-orange-200'
+      break
+    default:
+      break
 
-const getClass = (status) => {
-  if (status === 'office') return 'bg-green-200'
-  if (status === 'remote') return 'bg-gray-200'
-  if (status === 'holiday') return 'bg-orange-200'
-  return ''
+  }
+  return classes
 }
 
 const showAddNoteModal = (userId, date) => {
@@ -223,13 +231,99 @@ const showAddNoteModal = (userId, date) => {
   selectedDate.value = date
   modal.value.showModal()
 }
+
+
+const totalForUser = () => {
+  return 2
+}
+
+const openSheet = (user, date) => {
+  selectedUser.value = user
+  selectedDate.value = date
+  selectedUserNote.value = notesDraft.value[`${user.id}-${date}`]
+  bottomSheetOpen.value = true
+}
+
+const closeSheets = () => {
+  selectedUser.value = null
+  selectedDate.value = null
+  bottomSheetOpen.value = false
+}
+
+const onSetStatus = async (userId, date, status) => {
+
+  const key = `${userId}-${date}`
+
+  if (status === null) {
+    // 🧹 DELETE
+    await $fetch('/api/presences', {
+      method: 'DELETE',
+      body: {user_id: userId, date}
+    })
+
+    delete presences.value[key]
+  } else {
+    // 💾 UPSERT
+    await $fetch('/api/presences', {
+      method: 'POST',
+      body: {user_id: userId, date, status: status}
+    })
+
+    presences.value[key] = status
+  }
+
+  await refreshPresences()
+  closeSheets()
+}
+
 </script>
 
 <template>
-  <div class="w-100 mx-auto">
-    <div id="dashboard" class="flex flex-col lg:flex-row justify-between items-center gap-6">
-      <h3 class="font-bold text-2xl">STATISTICHE OGGI</h3>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 items-center justify-center py-1">
+  <div class="h-screen overflow-scroll">
+
+    <Header>
+      <template v-slot:default>
+        <div class="flex items-center gap-2 md:gap-3">
+          <!-- Week nav -->
+          <div class="flex items-center gap-1 bg-slate-50 rounded-xl px-2 py-1.5">
+            <button id="prev-btn" @click="prevWeek"
+                    class="nav-btn w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 transition-colors">
+              <ChevronLeft :size="18"/>
+            </button>
+            <span
+                class="text-xs md:text-sm font-medium text-slate-700 px-1 md:px-2 min-w-[100px] md:min-w-[160px] text-center"
+                id="week-label">
+              {{ from }} - {{ to }}
+            </span>
+            <button id="next-btn" @click="nextWeek"
+                    class="nav-btn w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 transition-colors">
+              <ChevronRight :size="18"/>
+            </button>
+          </div>
+
+          <!-- Oggi (desktop only) -->
+          <button id="today-btn" @click="goToCurrentWeek"
+                  class="inline-flex px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-800 transition-colors">
+            Oggi
+          </button>
+        </div>
+      </template>
+      <template v-slot:dayStrip>
+        <!-- Day strip (mobile only) -->
+        <div class="flex justify-around px-4 pb-3" id="day-strip-mobile">
+          <button v-for="d in weekDays" :key="d"
+                  :class="classDayStripButton(d)"
+                  class="flex flex-col items-center w-10 py-1.5 rounded-xl">
+            <span class="text-[10px] font-medium uppercase">{{ shortDayName(d) }}</span>
+            <span class="text-sm font-semibold">{{ dayNum(d) }}</span>
+          </button>
+        </div>
+      </template>
+    </Header>
+
+
+    <div class="w-100 mx-auto">
+      <div id="dashboard" class="grid m-2 grid-cols-2 lg:grid-cols-4 gap-3 items-center justify-center py-1">
         <Widget class="bg-green-200" :count="countByStatus['office'] ?? 0" description="Presenti">
           <Briefcase :size="14"/>
         </Widget>
@@ -243,176 +337,88 @@ const showAddNoteModal = (userId, date) => {
           <Minus :size="14"/>
         </Widget>
       </div>
-    </div>
-    <div class="flex flex-col lg:flex-row justify-between items-center px-1.5 py-2">
-      <Legend/>
-      <div class="flex gap-2 items-center">
-        <div class="range">{{ from }}
-          <MoveRight class="inline mx-2"/>
-          {{ to }}
-        </div>
-        <div class="flex items-center">
-          <div class="flex gap-2 mx-auto">
-            <button class="btn" @click="prevWeek">
-              <ChevronLeft :size="18"/>
-            </button>
-
-            <button class="btn primary w-1/2" @click="goToCurrentWeek">
-              <Calendar :size="16"/>
-              <span class="hidden md:inline-block">Oggi</span>
-            </button>
-
-            <button class="btn" @click="nextWeek">
-              <ChevronRight :size="18"/>
+      <div id="user-list" class="">
+        <div v-for="user in availableUsers" :key="user.name" class="user-card mb-2 shadow-sm">
+          <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0"
+                 style="background:${bg};color:${tc}">{{ initials(user.name) }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-slate-900 truncate">{{ user.name }}</p>
+            </div>
+            <span class="text-sm ${totalCls} shrink-0">{{ totalForUser(user) }}/5</span>
+          </div>
+          <div class="flex justify-around px-2 py-3">
+            <button v-for="d in weekDays" :key="d"
+                    class="day-pill" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
+                    @click="openSheet(user, d)">
+            <span
+                :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
+                class="text-[10px] font-medium">{{ shortDayName(d) }}</span>
+              <span class="text-xs font-semibold">
+                {{ dayNum(d) }}
+              </span>
+              <span>
+              <Star v-if="hasNote(user.id, d)" class="absolute top-0 -right-5 text-blue-800" :size="20"/>
+              <Briefcase class="text-green-500" v-if="presences[`${user.id}-${d}`] === 'office'" :size="18"/>
+              <Home class="text-gray-500" v-else-if="presences[`${user.id}-${d}`] === 'remote'" :size="18"/>
+              <Plane class="text-orange-500" v-else-if="presences[`${user.id}-${d}`] === 'holiday'" :size="18"/>
+              <Minus v-else :size="16"/>
+            </span>
             </button>
           </div>
-
         </div>
       </div>
-    </div>
-    <div class="table-wrap">
-      <table class="table">
-        <thead class="table w-full table-fixed shadow-md">
-        <tr class="table w-full table-fixed">
-          <th><input type="text" class="search" v-model="searchQuery" placeholder="Cerca..."></th>
-          <th :class="{'active-day': d === today}" v-for="d in weekDays" :key="d">
-            <span class="date" v-html="formatDate(d)"></span>
-            <span v-if="presencesCount[d]">({{ presencesCount[d] }})</span>
-          </th>
-        </tr>
-        </thead>
 
-        <tbody class="table-fixed block overflow-y-auto"
-               style="max-height: 65vh; padding-left: 5px; min-height: 300px;">
-        <tr v-for="user in availableUsers" :key="user.id" class="table w-full table-fixed">
-          <td class="name">{{ user.name }}</td>
-
-          <td :class="{'active-day': date === today}" v-for="date in weekDays" :key="date" class="cell" style="">
-            <div style="display: flex; justify-content: center;">
-              <button type="button"
-                      class="button status"
-                      :class="getClass(presences[`${user.id}-${date}`])"
-                      @click="toggle(user.id, date)"
-              >
-                <Briefcase v-if="presences[`${user.id}-${date}`] === 'office'" :size="18"/>
-                <Home v-else-if="presences[`${user.id}-${date}`] === 'remote'" :size="18"/>
-                <Plane v-else-if="presences[`${user.id}-${date}`] === 'holiday'" :size="18"/>
-                <Minus v-else :size="16"/>
-              </button>
-              <button type="button" class="button addNote"
-                      @click="showAddNoteModal(user.id, date)">
-                <NotebookPen :size="15" :class="{'active': hasNote(user.id, date)}"/>
-              </button>
-            </div>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-
-    <dialog ref="modal" class="rounded-xl p-6 w-96 backdrop:bg-black/30">
-      <h2 class="text-base font-medium mb-4">
-        Aggiungi nota per
-        <span class="font-bold" v-html="formatDate2(selectedDate)"></span></h2>
-      <textarea
-          v-model="notesDraft[`${selectedUserId}-${selectedDate}`]" class="w-full border rounded-lg p-2 text-sm"/>
-      <div class="flex justify-end gap-2 mt-4">
-        <button @click="modal.close()" class="px-4 py-2 text-sm">Annulla</button>
-        <button @click="saveNote()" class="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg">Salva</button>
+      <div class="flex flex-col lg:flex-row justify-between items-center px-1.5 py-2">
+        <Legend/>
       </div>
-    </dialog>
+      <BottomSheet v-if="selectedUser"
+                   :visible="bottomSheetOpen"
+                   :user="selectedUser"
+                   :date="selectedDate"
+                   :userNote="selectedUserNote"
+                   @setStatus="onSetStatus"
+                   @abort="closeSheets"
+                   @saveNote="onSaveNote"
+      />
 
-
+    </div>
   </div>
 </template>
 
 <style scoped>
-.active {
-  color: red;
-  font-weight: bold;
-}
 
-.btn {
+/* Day pill */
+.day-pill {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  padding: 6px 10px;
-  border-radius: 8px;
+  width: 44px;
+  border-radius: 12px;
+  padding: 6px 0;
   cursor: pointer;
-  transition: 0.2s;
-}
-
-.btn:hover {
-  background: #f1f5f9;
-}
-
-.btn.primary {
-  background: #2563eb;
-  color: white;
+  transition: background .12s, transform .1s;
+  position: relative;
   border: none;
 }
 
-.range {
-  font-size: 18px;
-  color: #64748b;
+.day-pill:active {
+  transform: scale(0.93);
 }
 
-th {
-  background: #f1f5f9;
-  font-weight: 600;
-  font-size: 13px;
-  padding: 10px;
+.day-pill.today-pill {
+  box-shadow: 0 0 0 2px #2563EB;
 }
 
-td {
-  border-top: 1px solid #f1f5f9;
-  padding: 8px;
-  vertical-align: top;
+/* User card */
+.user-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-.name {
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.cell {
-  min-width: 120px;
-}
-
-
-.button {
-  width: 50px;
-  height: 34px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 0;
-  cursor: pointer;
-}
-
-.status {
-  background: white;
-}
-
-.addNote {
-  background: transparent;
-  border: 1px solid transparent;
-}
-
-.date {
-  margin-right: .1rem;
-}
-
-.date * {
-  display: block;
-}
-
-.active-day {
-  background: rgb(5 32 74 / 0.15);
+.user-card + .user-card {
+  margin-top: 8px;
 }
 </style>

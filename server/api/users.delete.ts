@@ -1,7 +1,6 @@
 import db from '../db/client'
 
 export default defineEventHandler(async (event) => {
-    console.log('Updating users')
     const body = await readBody(event)
 
     const id = body?.id

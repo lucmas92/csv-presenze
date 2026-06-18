@@ -44,6 +44,7 @@ const setStatus = (status: string | null) => {
 
 const saveNote = () => {
   emit("saveNote", props.user.id, props.date, localUserNote.value)
+  modal.value.close()
 }
 
 const abort = () => {

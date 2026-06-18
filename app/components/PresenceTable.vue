@@ -352,7 +352,7 @@ const onSetStatus = async (userId, date, status) => {
                 {{ dayNum(d) }}
               </span>
               <span>
-              <Star v-if="hasNote(user.id, d)" class="absolute top-0 -right-5 text-blue-800" :size="20"/>
+              <Star v-if="hasNote(user.id, d)" class="absolute top-0 -right-7 text-blue-800" :size="20"/>
               <Briefcase class="text-green-500" v-if="presences[`${user.id}-${d}`] === 'office'" :size="18"/>
               <Home class="text-gray-500" v-else-if="presences[`${user.id}-${d}`] === 'remote'" :size="18"/>
               <Plane class="text-orange-500" v-else-if="presences[`${user.id}-${d}`] === 'holiday'" :size="18"/>

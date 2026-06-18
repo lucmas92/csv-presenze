@@ -12,17 +12,18 @@ import {
         <LayoutGrid class="text-white" :size="14"/>
       </div>
       <nav class="flex flex-col gap-2 mt-4">
-        <NuxtLink to="/" class="w-10 h-10 rounded-xl bg-brand-light text-brand flex items-center justify-center"
+        <NuxtLink to="/" exact
+                  class="w-10 h-10 rounded-xl text-slate-400 hover:bg-blue-200 hover:text-blue-500 flex items-center justify-center"
                   title="Calendario">
           <Calendar1/>
         </NuxtLink>
         <NuxtLink to="/users"
-                  class="w-10 h-10 rounded-xl text-slate-400 hover:bg-slate-50 flex items-center justify-center transition-colors"
+                  class="w-10 h-10 rounded-xl text-slate-400 hover:bg-blue-200 hover:text-blue-500 flex items-center justify-center transition-colors"
                   title="Utenti">
           <Users/>
         </NuxtLink>
         <NuxtLink to="/settings"
-                  class="w-10 h-10 rounded-xl text-slate-400 hover:bg-slate-50 flex items-center justify-center transition-colors"
+                  class="w-10 h-10 rounded-xl text-slate-400 hover:bg-blue-200 hover:text-blue-500 flex items-center justify-center transition-colors"
                   title="Impostazioni">
           <Settings/>
         </NuxtLink>
@@ -38,9 +39,9 @@ import {
       <NuxtPage/>
       <!-- ── BOTTOM NAV (mobile only) ── -->
       <nav class="bottom-nav flex md:hidden">
-        <NuxtLink to="/" class="text-blue-500">
+        <NuxtLink to="/" exact class="text-slate-400">
           <Calendar1/>
-          <span class="text-xs font-medium text-blue-500">Calendario</span>
+          <span class="text-xs font-medium text-slate-400">Calendario</span>
         </NuxtLink>
         <NuxtLink to="/users" class="text-slate-400">
           <Users/>
@@ -87,6 +88,20 @@ body, html {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { display: none; }
-input { font-size: 16px; } /* prevent iOS zoom */
+::-webkit-scrollbar {
+  display: none;
+}
+
+input {
+  font-size: 16px;
+}
+
+/* prevent iOS zoom */
+
+
+.router-link-exact-active {
+  font-weight: bold;
+  color: rgb(59 130 246);
+  background-color: rgb(191 219 254);
+}
 </style>

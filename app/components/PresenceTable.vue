@@ -141,9 +141,6 @@ const countByStatus = computed(() => {
 const countByUser =  (user) => {
   if (!presencesData.value) return {}
 
-  console.log('user', user)
-  console.log('presencesData', presencesData)
-
   return presencesData.value
       .filter(item => item.user_id === user.id && item.status == 'office')
       .length

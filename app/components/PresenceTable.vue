@@ -366,10 +366,6 @@ const onSetStatus = async (userId, date, status) => {
           </div>
         </div>
       </div>
-
-      <div class="flex flex-col lg:flex-row justify-between items-center px-1.5 py-2">
-        <Legend/>
-      </div>
       <BottomSheet v-if="selectedUser"
                    :visible="bottomSheetOpen"
                    :user="selectedUser"

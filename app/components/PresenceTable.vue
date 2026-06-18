@@ -241,7 +241,9 @@ const openSheet = (user, date) => {
   selectedUser.value = user
   selectedDate.value = date
   selectedUserNote.value = notesDraft.value[`${user.id}-${date}`]
-  bottomSheetOpen.value = true
+  setTimeout(() => {
+    bottomSheetOpen.value = true
+  }, 1)
 }
 
 const closeSheets = () => {

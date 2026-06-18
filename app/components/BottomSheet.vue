@@ -167,7 +167,7 @@ const showAddNoteModal = () => {
   padding-bottom: env(safe-area-inset-bottom, 16px);
   z-index: 50;
   transform: translateY(100%);
-  transition: transform 2.28s cubic-bezier(.4, 0, .2, 1);
+  transition: transform .28s cubic-bezier(.4, 0, .2, 1);
 }
 
 .sheet-backdrop.open .sheet {

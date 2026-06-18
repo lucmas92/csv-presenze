@@ -12,6 +12,6 @@
       </div>
       <slot name="default"></slot>
     </div>
-    <slot name="dayStrip">1</slot>
+    <slot name="dayStrip"></slot>
   </header>
 </template>

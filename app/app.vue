@@ -48,7 +48,7 @@ import {
           <span class="text-xs font-medium">Utenti</span>
         </NuxtLink>
         <NuxtLink to="/settings" class="text-slate-400">
-          <Settings/>
+          <settings/>
           <span class="text-xs font-medium">Impostazioni</span>
         </NuxtLink>
       </nav>

@@ -1,10 +1,13 @@
 <script setup>
-import {Plus, Save, Trash, Pencil} from 'lucide-vue-next'
+import {Save, Trash, Pencil} from 'lucide-vue-next'
+import Header from "~/components/Header.vue";
+import BottomSheetAddUser from "~/components/BottomSheetAddUser.vue";
 
-const name = ref('')
+const searchQuery = ref('')
 const loading = ref(false)
 const editing = ref([])
 const users = ref([])
+const bottomSheetOpen = ref(false)
 
 const fetchUsers = async () => {
   users.value = await $fetch('/api/users')
@@ -12,25 +15,37 @@ const fetchUsers = async () => {
 
 await fetchUsers()
 
-const createUser = async () => {
-  if (!name.value.trim()) return
+const onSaveUser = async (userName) => {
+  if (!userName.trim()) return
 
   loading.value = true
 
   try {
     const newUser = await $fetch('/api/users', {
       method: 'POST',
-      body: {name: name.value}
+      body: {name: userName}
     })
 
     users.value.push(newUser)
-    name.value = ''
   } finally {
     loading.value = false
   }
 }
 
+const availableUsers = computed(() => {
+  if (!users.value) return [{name: '', id: 0}]
+
+  if (searchQuery.value === '')
+    return users.value.sort((a, b) => a.name.localeCompare(b.name))
+
+  const filtered = users.value.filter((user) => {
+    return user['name'].toLowerCase().includes(searchQuery.value.toLowerCase())
+  })
+  return filtered.sort((a, b) => a.name.localeCompare(b.name))
+})
+
 const editUser = (user) => {
+  editing.value = []
   if (!editing.value[user.id]) {
     editing.value[user.id] = true
   } else {
@@ -69,50 +84,51 @@ const deleteUser = async (user) => {
     loading.value = false
   }
 }
+
+const openSheet = () => {
+  setTimeout(() => {
+    bottomSheetOpen.value = true
+  }, 1)
+}
+
+const closeSheets = () => {
+  bottomSheetOpen.value = false
+}
+
 </script>
 
 <template>
-  <div class="w-100 mx-auto md:w-2/3">
-    <div class="flex flex-col sm:flex-row justify-between items-center px-1.5 py-2">
-      <h2 class="title">Utenti</h2>
+  <div class="h-screen overflow-scroll">
+    <Header class="mb-2">
 
-      <div class="nav">
-        <!-- FORM -->
-        <div class="card">
-          <input
-              v-model="name"
-              placeholder="Nome utente..."
-              @keyup.enter="createUser"
-          />
+      <template v-slot:default>
+        <div class="flex items-center gap-2 md:gap-3">
+          <div>Lista Utenti</div>
 
-          <button class="btn" :disabled="loading" @click="createUser">
-            <Plus :size="16"/>
+          <button id="add-user-btn" @click="openSheet"
+                  class="inline-flex px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-800">
+            Aggiungi
           </button>
         </div>
-      </div>
-    </div>
+      </template>
+    </Header>
+    <input type="text" v-model="searchQuery" class="mx-2 px-7 py-2 w-full mb-2 rounded-xl" placeholder="Ricerca...">
 
-    <!-- LISTA -->
-    <div class="table-wrap">
-      <table class="table">
-        <thead class="table w-full table-fixed">
-        <tr>
-          <th>Nome</th>
-          <th>&nbsp;</th>
-        </tr>
-        </thead>
-        <tbody class="block overflow-y-auto" style="max-height: 65vh; min-height: 300px;">
-        <tr v-for="user in users" :key="user.id" class="table w-full table-fixed">
-          <td class="name">
-            <div v-if="!editing[user.id]" style="padding: .5rem 1rem;">{{ user.name }}</div>
+    <div class="mx-1 md:mx-1 flex flex-wrap">
+      <div v-for="user in availableUsers" :key="user.id" class="basis-full md:basis-1/2 lg:basis-1/3">
+        <div
+            class="m-2 flex justify-between bg-white mb-2 rounded-lg p-2">
+          <div class="text-sm font-semibold text-slate-90 truncate">
+            <div v-if="!editing[user.id]" class="border border-transparent p-2">{{ user.name }}</div>
             <span v-else>
-              <input class="edit-name"
-                     @keydown.enter="updateUser(user)"
-                     type="text"
-                     v-model="user.name">
-            </span>
-          </td>
-          <td class="actions">
+                <input class="border border-gray-200 p-2"
+                       @keydown.enter="updateUser(user)"
+                       autofocus
+                       type="text"
+                       v-model="user.name">
+              </span>
+          </div>
+          <div class="flex items-center gap-4 mr-3">
             <button v-if="!editing[user.id]" class="action-button" @click="editUser(user)">
               <Pencil/>
             </button>
@@ -122,66 +138,14 @@ const deleteUser = async (user) => {
             <button class="action-button" @click="deleteUser(user)">
               <Trash/>
             </button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
+          </div>
+        </div>
+      </div>
     </div>
+    <BottomSheetAddUser :visible="bottomSheetOpen"
+                        @saveUser="onSaveUser"
+                        @abort="closeSheets"/>
   </div>
 </template>
 <style scoped>
-
-.title {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.card {
-  align-items: center;
-  display: flex;
-}
-
-.actions {
-  text-align: right;
-}
-
-button {
-  align-items: center;
-  margin: 0 .5rem;
-  gap: 6px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  padding: 6px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-th {
-  border: 1px solid #e5e7eb;
-  background: #f1f5f9;
-  font-weight: 600;
-  font-size: 13px;
-  padding: 10px;
-}
-
-th:first-child {
-  width: 60%;
-}
-
-td {
-  border-top: 1px solid #f1f5f9;
-  padding: 8px;
-  vertical-align: top;
-}
-
-.table {
-  min-width: 400px !important;
-}
 </style>

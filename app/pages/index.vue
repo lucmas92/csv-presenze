@@ -272,7 +272,7 @@ const onSetStatus = async (userId, date, status) => {
 </script>
 
 <template>
-  <div class="h-screen overflow-scroll">
+  <div class="h-screen overflow-scroll pb-24 md:pb-0">
 
     <Header>
       <template v-slot:default>

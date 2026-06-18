@@ -59,7 +59,7 @@ const showAddNoteModal = () => {
 }
 </script>
 <template>
-  <div class="sheet-backdrop md:hidden" @click.self="abort()" :class="getClass()" id="sheet">
+  <div class="sheet-backdrop" @click.self="abort()" :class="getClass()" id="sheet">
     <div ref="sheet" class="sheet">
       <div class="sheet-handle"></div>
       <div v-if="user" class="px-5 pt-4 pb-3">

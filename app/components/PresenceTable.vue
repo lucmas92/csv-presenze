@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Star
 } from 'lucide-vue-next'
-import Legend from '~/components/Legend.vue'
 import Widget from '~/components/Widget.vue'
 import {getCurrentWeek} from "~/utils/dates.ts";
 import Header from "./Header.vue";

@@ -101,7 +101,7 @@ const showAddNoteModal = () => {
             <div class="w-10 h-10 rounded-xl bg-gray-300 flex items-center justify-center">
               <Home/>
             </div>
-            <span class="text-xs font-medium text-gray-800">Assente</span>
+            <span class="text-xs font-medium text-gray-800">Smart</span>
           </button>
           <button @click="setStatus('holiday')"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-orange-200 active:opacity-70">

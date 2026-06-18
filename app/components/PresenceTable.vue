@@ -138,6 +138,17 @@ const countByStatus = computed(() => {
       }, {});
 })
 
+const countByUser =  (user) => {
+  if (!presencesData.value) return {}
+
+  console.log('user', user)
+  console.log('presencesData', presencesData)
+
+  return presencesData.value
+      .filter(item => item.user_id === user.id && item.status == 'office')
+      .length
+}
+
 const countToday = computed(() => {
   if (!presencesData.value) return {}
   return presencesData.value
@@ -156,18 +167,6 @@ const presences = computed(() => {
   }
 
   return map
-})
-
-const presencesCount = computed(() => {
-  return presencesData.value.reduce((acc, item) => {
-    if (!acc[item.date]) {
-      acc[item.date] = 0;
-    }
-    if (item.status === 'office')
-      acc[item.date]++;
-
-    return acc;
-  }, {});
 })
 
 let timeout
@@ -232,10 +231,6 @@ const showAddNoteModal = (userId, date) => {
   modal.value.showModal()
 }
 
-
-const totalForUser = () => {
-  return 2
-}
 
 const openSheet = (user, date) => {
   selectedUser.value = user
@@ -323,8 +318,7 @@ const onSetStatus = async (userId, date, status) => {
       </template>
     </Header>
 
-
-    <div class="w-100 mx-auto">
+    <div class="w-100 mx-1 md:mx-3">
       <div id="dashboard" class="grid m-2 grid-cols-2 lg:grid-cols-4 gap-3 items-center justify-center py-1">
         <Widget class="bg-green-200" :count="countByStatus['office'] ?? 0" description="Presenti">
           <Briefcase :size="14"/>
@@ -339,6 +333,7 @@ const onSetStatus = async (userId, date, status) => {
           <Minus :size="14"/>
         </Widget>
       </div>
+      <input type="text" v-model="searchQuery" class="px-7 py-2 w-full mb-2 rounded-xl" placeholder="Ricerca...">
       <div id="user-list" class="">
         <div v-for="user in availableUsers" :key="user.name" class="user-card mb-2 shadow-sm">
           <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
@@ -348,7 +343,7 @@ const onSetStatus = async (userId, date, status) => {
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-slate-900 truncate">{{ user.name }}</p>
             </div>
-            <span class="text-sm ${totalCls} shrink-0">{{ totalForUser(user) }}/5</span>
+            <span class="text-sm ${totalCls} shrink-0">{{ countByUser(user) }}/5</span>
           </div>
           <div class="flex justify-around px-2 py-3">
             <button v-for="d in weekDays" :key="d"

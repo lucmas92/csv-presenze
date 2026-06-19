@@ -333,7 +333,7 @@ const showAddGuest = (d) => {
 </script>
 
 <template>
-  <div class="h-screen overflow-scroll pb-24 md:pb-0">
+  <div class="h-screen overflow-scroll pb-48 md:pb-0">
     <Header>
       <template v-slot:default>
         <div class="flex items-center gap-2 md:gap-3">

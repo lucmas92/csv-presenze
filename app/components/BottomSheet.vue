@@ -44,11 +44,20 @@ const setStatus = (status: string | null) => {
 
 const saveNote = () => {
   emit("saveNote", props.user.id, props.date, localUserNote.value)
-  modal.value.close()
+  setTimeout(() => {
+    modal.value.close()
+  }, 200)
+}
+
+const deleteNote = () => {
+  localUserNote.value = ''
+  saveNote()
 }
 
 const abort = () => {
-  emit("abort")
+  setTimeout(() => {
+    emit("abort")
+  }, 200)
 }
 
 const getClass = () => {
@@ -56,7 +65,9 @@ const getClass = () => {
 }
 
 const showAddNoteModal = () => {
-  modal.value.showModal()
+  setTimeout(() => {
+    modal.value.showModal()
+  }, 200)
 }
 
 const handleKeyDown = (event: any) => {
@@ -95,7 +106,9 @@ onUnmounted(() => {
               </p>
             </div>
           </div>
-          <NotebookPen @click="showAddNoteModal" :size="24"/>
+          <button type="button" @click="showAddNoteModal">
+            <NotebookPen :size="24"/>
+          </button>
         </div>
         <div v-if="userNote" class="mb-3">
           <p class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">
@@ -135,7 +148,7 @@ onUnmounted(() => {
         </div>
         <button @click="abort()"
                 class="w-full py-3 rounded-2xl border border-slate-200 text-sm font-medium text-slate-600 active:bg-slate-50">
-          Annulla
+          Chiudi
         </button>
       </div>
     </div>
@@ -148,8 +161,10 @@ onUnmounted(() => {
       <textarea
           v-model="localUserNote" class="w-full border rounded-lg p-2 text-sm"/>
       <div class="flex justify-end gap-2 mt-4">
-        <button @click="modal.close()" class="px-4 py-2 text-sm">Annulla</button>
-        <button @click="saveNote()" class="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg">Salva</button>
+        <button type="button" @click="modal.close()" class="px-4 py-2 text-sm rounded-2xl border border-gray-200">Chiudi</button>
+        <button type="button" @click="deleteNote()" class="px-4 py-2 text-sm rounded-2xl text-red-500 bg-red-200">Elimina</button>
+        <button type="button" @click="saveNote()" class="px-4 py-2 text-sm rounded-2xl bg-emerald-600 text-white">Salva
+        </button>
       </div>
     </dialog>
   </div>

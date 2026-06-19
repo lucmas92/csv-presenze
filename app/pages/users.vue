@@ -46,22 +46,25 @@ const availableUsers = computed(() => {
 
 const editUser = (user) => {
   editing.value = []
-  if (!editing.value[user.id]) {
-    editing.value[user.id] = true
-  } else {
-    editing.value[user.id] = !editing.value[user.id]
-  }
+  setTimeout(() => {
+    if (!editing.value[user.id]) {
+      editing.value[user.id] = true
+    } else {
+      editing.value[user.id] = !editing.value[user.id]
+    }
+  }, 200)
 }
 
 const updateUser = async (user) => {
   loading.value = true
-
   try {
     const newUser = await $fetch('/api/users', {
       method: 'PUT',
       body: {id: user.id, name: user.name}
     })
-    editing.value[user.id] = false
+    setTimeout(() => {
+      editing.value[user.id] = false
+    }, 200)
   } finally {
     loading.value = false
   }
@@ -70,25 +73,27 @@ const updateUser = async (user) => {
 const deleteUser = async (user) => {
   loading.value = true
 
-  const confirmAction = confirm('Sicuro di voler eliminare questo utente?')
-  if (!confirmAction) {
-    return
-  }
-  try {
-    await $fetch('/api/users', {
-      method: 'DELETE',
-      body: {id: user.id}
-    })
-    await fetchUsers()
-  } finally {
-    loading.value = false
-  }
+  setTimeout(async () => {
+    const confirmAction = confirm('Sicuro di voler eliminare questo utente?')
+    if (!confirmAction) {
+      return
+    }
+    try {
+      await $fetch('/api/users', {
+        method: 'DELETE',
+        body: {id: user.id}
+      })
+      await fetchUsers()
+    } finally {
+      loading.value = false
+    }
+  }, 200)
 }
 
 const openSheet = () => {
   setTimeout(() => {
     bottomSheetOpen.value = true
-  }, 1)
+  }, 200)
 }
 
 const closeSheets = () => {

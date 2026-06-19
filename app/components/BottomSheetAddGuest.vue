@@ -42,7 +42,6 @@ const saveGuest = () => {
 }
 
 const deleteGuest = (guest: any) => {
-  console.log('deleteGuest', guest)
   emit('deleteGuest', guest.guest_name, selectedDate.value)
 }
 
@@ -110,7 +109,7 @@ onUnmounted(() => {
           </button>
           <button @click="abort()"
                   class="w-full py-3 rounded-2xl border border-slate-200 text-sm font-medium text-slate-600 active:bg-slate-50">
-            Annulla
+            Chiudi
           </button>
         </div>
       </div>

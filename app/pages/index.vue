@@ -19,7 +19,7 @@ import BottomSheetAddGuest from "~/components/BottomSheetAddGuest.vue";
 const notesDraft = ref({})
 const modal = useTemplateRef('modal')
 
-const currentMonday = ref(getCurrentWeek()[1])
+const currentMonday = ref(getCurrentWeek()[0])
 const selectedUserId = ref(null)
 const selectedUser = ref(null)
 const selectedUserNote = ref(null)
@@ -144,16 +144,17 @@ const guestsPerDay = computed(() => {
 
 const totalPresences = (date) => {
 
+  let guests = 0
   let total = presencesData.value
       .filter(item => item.date === date)
       .length
 
   const b = guestsPerDay.value.get(date)
   if (b) {
-    total += b.length
+    guests = b.length
   }
 
-  return total
+  return guests > 0 ? total + ' + ' + guests : total
 
 }
 
@@ -265,7 +266,7 @@ const openSheet = (user, date) => {
   selectedUserNote.value = notesDraft.value[`${user.id}-${date}`]
   setTimeout(() => {
     bottomSheetOpen.value = true
-  }, 1)
+  }, 200)
 }
 
 const closeSheets = () => {
@@ -327,7 +328,9 @@ const onSetStatus = async (userId, date, status) => {
 
 const showAddGuest = (d) => {
   selectedDate.value = d
-  bottomSheetAddGuestOpen.value = true
+  setTimeout(() => {
+    bottomSheetAddGuestOpen.value = true
+  }, 200)
 }
 
 </script>
@@ -365,18 +368,12 @@ const showAddGuest = (d) => {
         <!-- Day strip (mobile only) -->
         <div class="flex justify-around px-4 pb-3" id="day-strip-mobile">
           <div class="relative" v-for="d in weekDays" :key="d">
-            <button type="button"
-                    @click="showAddGuest(d)"
-                    class="absolute bottom-10 -right-6 focus:outline-none">
-              <Users :size="15"/>
-            </button>
-
-            <div
-                :class="classDayStripButton(d)"
-                class="flex flex-col items-center w-10 py-1.5 rounded-xl">
+            <button type="button" @click="showAddGuest(d)"
+                    :class="classDayStripButton(d)"
+                    class="flex flex-col items-center w-10 py-1.5 rounded-xl">
               <span class="text-[10px] font-medium uppercase">{{ shortDayName(d) }}</span>
               <span class="text-sm font-semibold">{{ dayNum(d) }}</span>
-            </div>
+            </button>
             <div class="font-bold text-center">{{ totalPresences(d) }}</div>
           </div>
         </div>
@@ -412,7 +409,7 @@ const showAddGuest = (d) => {
           </div>
           <div class="flex justify-around px-2 py-3">
             <button v-for="d in weekDays" :key="d"
-                    class="day-pill" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
+                    class="day-pill h-16" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
                     @click="openSheet(user, d)">
             <span
                 :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
@@ -421,7 +418,7 @@ const showAddGuest = (d) => {
                 {{ dayNum(d) }}
               </span>
               <span>
-              <Star v-if="hasNote(user.id, d)" class="absolute top-0 -right-7 text-blue-800" :size="20"/>
+              <Star v-if="hasNote(user.id, d)" class="absolute top-0 -right-4 text-blue-800" :size="12"/>
               <Briefcase class="text-green-500" v-if="presences[`${user.id}-${d}`] === 'office'" :size="18"/>
               <Home class="text-gray-500" v-else-if="presences[`${user.id}-${d}`] === 'remote'" :size="18"/>
               <Plane class="text-orange-500" v-else-if="presences[`${user.id}-${d}`] === 'holiday'" :size="18"/>

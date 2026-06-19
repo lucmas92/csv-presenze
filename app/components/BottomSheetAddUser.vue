@@ -3,7 +3,6 @@ import {ref} from "vue";
 
 const sheet = ref()
 const userName = ref<string>('')
-const modal = ref()
 const emit = defineEmits<{
   (e: 'saveUser', userName: string): void
   (e: 'abort'): void
@@ -69,20 +68,11 @@ onUnmounted(() => {
           </button>
           <button @click="abort()"
                   class="w-full py-3 rounded-2xl border border-slate-200 text-sm font-medium text-slate-600 active:bg-slate-50">
-            Annulla
+            Chiudi
           </button>
         </div>
       </div>
     </div>
-    <dialog ref="modal" class="rounded-xl p-6 w-96 backdrop:bg-black/30">
-      <h2 class="text-base font-medium mb-4">
-        Aggiungi utente
-      </h2>
-      <div class="flex justify-end gap-2 mt-4">
-        <button @click="modal.close()" class="px-4 py-2 text-sm">Annulla</button>
-        <button @click="saveUser()" class="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg">Salva</button>
-      </div>
-    </dialog>
   </div>
 </template>
 <style scoped>

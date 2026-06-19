@@ -1,4 +1,5 @@
 <script setup>
+import pkg from '../package.json'
 import {
   Users,
   Calendar1, Settings, LayoutGrid
@@ -30,9 +31,10 @@ import {
       </nav>
       <div class="mt-auto">
         <div
-            class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-blue-100 text-xs font-semibold">
+            class="w-8 h-8 mb-2 rounded-full bg-blue-500 flex items-center justify-center text-blue-100 text-xs font-semibold">
           CSV
         </div>
+        v{{pkg.version}}
       </div>
     </aside>
     <main class="w-full mx-1">
@@ -90,6 +92,11 @@ body, html {
 /* Scrollbar */
 ::-webkit-scrollbar {
   display: none;
+}
+
+
+button:active {
+  transform: scale(0.93);
 }
 
 input {

@@ -9,6 +9,10 @@ export default defineEventHandler(async (event) => {
         DELETE
         FROM notes
     `).run()
+    db.prepare(`
+        DELETE
+        FROM guests
+    `).run()
 
     return {success: true}
 })

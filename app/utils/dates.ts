@@ -30,7 +30,7 @@ export const getCurrentWeek = () => {
     return days
 }
 
-export const getWeekFromMonday = (monday:string) => {
+export const getWeekFromMonday = (monday: string) => {
     const start = new Date(monday)
     const days = []
 
@@ -41,5 +41,21 @@ export const getWeekFromMonday = (monday:string) => {
     }
 
     return days
+}
+
+export const formatDate = (d: string) => {
+    const date = new Date(d)
+    const dayName = date.toLocaleDateString('it', {weekday: 'short'}).toUpperCase()
+    const dayNumber = date.getDate()
+    const monthName = date.toLocaleDateString('it', {month: 'short'})
+    return `<span>${dayName}</span><br/> ${dayNumber}`
+}
+
+export const formatDate2 = (d: string) => {
+    const date = new Date(d)
+    const dayName = date.toLocaleDateString('it', {weekday: 'long'})
+    const dayNumber = date.getDate()
+    const monthName = date.toLocaleDateString('it', {month: 'long'})
+    return `<span>${dayName}</span> ${dayNumber} ${monthName}`
 }
 

@@ -6,13 +6,15 @@ import {
   Minus,
   ChevronLeft,
   ChevronRight,
-  Star
+  Star,
+  Users
 } from 'lucide-vue-next'
 import Widget from '~/components/Widget.vue'
 import {getCurrentWeek} from "~/utils/dates.ts";
 import Header from "./../components/Header.vue";
-import BottomSheet from "./../components/BottomSheet.vue";
 import {initials} from "../utils/utils";
+import BottomSheet from "./../components/BottomSheet.vue";
+import BottomSheetAddGuest from "~/components/BottomSheetAddGuest.vue";
 
 const notesDraft = ref({})
 const modal = useTemplateRef('modal')
@@ -22,8 +24,10 @@ const selectedUserId = ref(null)
 const selectedUser = ref(null)
 const selectedUserNote = ref(null)
 const selectedDate = ref(null)
+const selectedGuestDate = ref(null)
 const searchQuery = ref('')
 const bottomSheetOpen = ref(false)
+const bottomSheetAddGuestOpen = ref(false)
 const today = ref(new Date().toLocaleDateString('sv-SE'))
 
 // 📅 settimana corrente
@@ -45,21 +49,6 @@ const dayNum = (d) => {
   return date.getDate()
 }
 
-const formatDate = (d) => {
-  const date = new Date(d)
-  const dayName = date.toLocaleDateString('it', {weekday: 'short'}).toUpperCase()
-  const dayNumber = date.getDate()
-  const monthName = date.toLocaleDateString('it', {month: 'short'})
-  return `<span>${dayName}</span><br/> ${dayNumber}`
-}
-
-const formatDate2 = (d) => {
-  const date = new Date(d)
-  const dayName = date.toLocaleDateString('it', {weekday: 'long'})
-  const dayNumber = date.getDate()
-  const monthName = date.toLocaleDateString('it', {month: 'long'})
-  return `<span>${dayName}</span> ${dayNumber} ${monthName}`
-}
 
 const fromQuery = computed(() => weekDays.value[0])
 const toQuery = computed(() => weekDays.value[4])
@@ -104,6 +93,15 @@ watch(
     {immediate: true}
 )
 
+// 📦 dati DB
+const {data: guests, refresh: refreshGuests} = await useFetch('/api/guests', {
+  query: {
+    fromQuery,
+    toQuery
+  },
+  watch: [fromQuery, toQuery]
+})
+
 
 // 📦 dati DB
 const {data: presencesData, refresh: refreshPresences} = await useFetch('/api/presences', {
@@ -126,6 +124,39 @@ const availableUsers = computed(() => {
   return filtered.sort((a, b) => a.name.localeCompare(b.name))
 })
 
+const countOspiti = computed(() => {
+  if (!guests.value) return {}
+  return (guestsPerDay.value.get(today.value) || []).length
+})
+
+
+const guestsPerDay = computed(() => {
+  const map = new Map()
+
+  for (const guest of guests.value) {
+    if (!map.has(guest.date)) {
+      map.set(guest.date, [])
+    }
+    map.get(guest.date).push(guest)
+  }
+  return map
+})
+
+const totalPresences = (date) => {
+
+  let total = presencesData.value
+      .filter(item => item.date === date)
+      .length
+
+  const b = guestsPerDay.value.get(date)
+  if (b) {
+    total += b.length
+  }
+
+  return total
+
+}
+
 const countByStatus = computed(() => {
   if (!presencesData.value) return {}
 
@@ -137,11 +168,11 @@ const countByStatus = computed(() => {
       }, {});
 })
 
-const countByUser =  (user) => {
+const countByUser = (user) => {
   if (!presencesData.value) return {}
 
   return presencesData.value
-      .filter(item => item.user_id === user.id && item.status == 'office')
+      .filter(item => item.user_id === user.id && item.status === 'office')
       .length
 }
 
@@ -243,6 +274,31 @@ const closeSheets = () => {
   bottomSheetOpen.value = false
 }
 
+const closeGuestSheets = () => {
+  selectedDate.value = null
+  bottomSheetAddGuestOpen.value = false
+}
+
+const onSaveGuest = async (guest_name, date) => {
+
+  // 💾 UPSERT
+  await $fetch('/api/guests', {
+    method: 'POST',
+    body: {guest_name: guest_name, date}
+  })
+
+  refreshGuests()
+}
+
+const onDeleteGuest = async (guest_name, date) => {
+  // 🧹 DELETE
+  await $fetch('/api/guests', {
+    method: 'DELETE',
+    body: {guest_name: guest_name, date: date}
+  })
+  refreshGuests()
+}
+
 const onSetStatus = async (userId, date, status) => {
 
   const key = `${userId}-${date}`
@@ -269,11 +325,15 @@ const onSetStatus = async (userId, date, status) => {
   closeSheets()
 }
 
+const showAddGuest = (d) => {
+  selectedDate.value = d
+  bottomSheetAddGuestOpen.value = true
+}
+
 </script>
 
 <template>
   <div class="h-screen overflow-scroll pb-24 md:pb-0">
-
     <Header>
       <template v-slot:default>
         <div class="flex items-center gap-2 md:gap-3">
@@ -304,12 +364,21 @@ const onSetStatus = async (userId, date, status) => {
       <template v-slot:dayStrip>
         <!-- Day strip (mobile only) -->
         <div class="flex justify-around px-4 pb-3" id="day-strip-mobile">
-          <button v-for="d in weekDays" :key="d"
-                  :class="classDayStripButton(d)"
-                  class="flex flex-col items-center w-10 py-1.5 rounded-xl">
-            <span class="text-[10px] font-medium uppercase">{{ shortDayName(d) }}</span>
-            <span class="text-sm font-semibold">{{ dayNum(d) }}</span>
-          </button>
+          <div class="relative" v-for="d in weekDays" :key="d">
+            <button type="button"
+                    @click="showAddGuest(d)"
+                    class="absolute bottom-10 -right-6 focus:outline-none">
+              <Users :size="15"/>
+            </button>
+
+            <div
+                :class="classDayStripButton(d)"
+                class="flex flex-col items-center w-10 py-1.5 rounded-xl">
+              <span class="text-[10px] font-medium uppercase">{{ shortDayName(d) }}</span>
+              <span class="text-sm font-semibold">{{ dayNum(d) }}</span>
+            </div>
+            <div class="font-bold text-center">{{ totalPresences(d) }}</div>
+          </div>
         </div>
       </template>
     </Header>
@@ -319,21 +388,22 @@ const onSetStatus = async (userId, date, status) => {
         <Widget class="bg-green-200" :count="countByStatus['office'] ?? 0" description="Presenti">
           <Briefcase :size="14"/>
         </Widget>
+        <Widget class="bg-blue-200" :count="countOspiti" description="Ospiti">
+          <Users :size="14"/>
+        </Widget>
         <Widget class="bg-gray-200" :count="countByStatus['remote'] ?? 0" description="Da casa">
           <Home :size="14"/>
         </Widget>
         <Widget class="bg-orange-200" :count="countByStatus['holiday'] ?? 0" description="In ferie">
           <Plane :size="14"/>
         </Widget>
-        <Widget :count="users.length - countToday" description="Da compilare">
-          <Minus :size="14"/>
-        </Widget>
       </div>
       <input type="text" v-model="searchQuery" class="px-7 py-2 w-full mb-2 rounded-xl" placeholder="Ricerca...">
       <div id="user-list" class="">
         <div v-for="user in availableUsers" :key="user.name" class="user-card mb-2 shadow-sm">
           <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">{{ initials(user.name) }}
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">
+              {{ initials(user.name) }}
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold text-slate-900 truncate">{{ user.name }}</p>
@@ -370,6 +440,14 @@ const onSetStatus = async (userId, date, status) => {
                    @abort="closeSheets"
                    @saveNote="onSaveNote"
       />
+      <BottomSheetAddGuest v-if="selectedDate"
+                           :guests="guestsPerDay.get(selectedDate) || []"
+                           :date="selectedDate"
+                           :visible="bottomSheetAddGuestOpen"
+                           @saveGuest="onSaveGuest"
+                           @deleteGuest="onDeleteGuest"
+                           onDeleteGuest="onDeleteGuest"
+                           @abort="closeGuestSheets"/>
 
     </div>
   </div>
@@ -389,10 +467,6 @@ const onSetStatus = async (userId, date, status) => {
   transition: background .12s, transform .1s;
   position: relative;
   border: none;
-}
-
-.day-pill:active {
-  transform: scale(0.93);
 }
 
 .day-pill.today-pill {

@@ -58,12 +58,31 @@ const getClass = () => {
 const showAddNoteModal = () => {
   modal.value.showModal()
 }
+
+const handleKeyDown = (event: any) => {
+  if (event.key === 'Escape' || event.key === 'Esc') {
+    abort()
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown);
+});
 </script>
 <template>
   <div class="sheet-backdrop" @click.self="abort()" :class="getClass()" id="sheet">
-    <div ref="sheet" class="sheet">
+    <div ref="sheet" class="sheet w-full md:w-2/3 xl:w-1/2 mx-auto">
       <div class="sheet-handle"></div>
       <div v-if="user" class="px-5 pt-4 pb-3">
+        <p class="flex items-center gap-2 text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+          <span>Imposta stato</span>
+          <span>-</span>
+          <span v-html="formatDate2(date)"/>
+        </p>
         <div class="flex justify-between">
 
           <div class="flex items-center gap-3 mb-4">
@@ -73,9 +92,6 @@ const showAddNoteModal = () => {
             <div>
               <p class="font-semibold text-sm" id="sheet-name">
                 {{ user.name }}
-              </p>
-              <p class="text-xs text-slate-400" id="sheet-date">
-                {{ date }}
               </p>
             </div>
           </div>
@@ -87,8 +103,7 @@ const showAddNoteModal = () => {
           </p>
           <span>{{ userNote }} </span>
         </div>
-        <p class="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3">Imposta stato</p>
-        <div class="grid grid-cols-4 gap-2 mb-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <button @click="setStatus('office')"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-green-200 active:opacity-70">
             <div class="w-10 h-10 rounded-xl bg-green-300 flex items-center justify-center">

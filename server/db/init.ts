@@ -23,6 +23,14 @@ export function initDB() {
             UNIQUE (user_id, date)
         );
 
+        CREATE TABLE IF NOT EXISTS guests
+        (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            guest_name TEXT,
+            date      TEXT    NOT NULL, -- YYYY-MM-DD
+            UNIQUE (guest_name, date)
+        );
+
         CREATE TABLE IF NOT EXISTS notes
         (
             id      INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,29 +1,49 @@
 <script setup lang="ts">
+import {Trash} from 'lucide-vue-next'
 import {ref} from "vue";
-
-const sheet = ref()
-const userName = ref<string>('')
-const modal = ref()
-const emit = defineEmits<{
-  (e: 'saveUser', userName: string): void
-  (e: 'abort'): void
-}>()
+import {initials} from "~/utils/utils";
 
 const props = defineProps({
+  date: {
+    type: String,
+    required: true
+  },
+  guests: {
+    type: Array,
+    required: true
+  },
   visible: {
     type: Boolean,
     default: false
   },
 })
 
-watch(props, (newVal, oldVal) => {
-  if (props.visible)
-    userName.value = ''
+const sheet = ref()
+const guestName = ref<string>('')
+const modal = ref()
+const selectedDate = ref(props.date)
+const emit = defineEmits<{
+  (e: 'saveGuest', guestName: string, date: string): void
+  (e: 'deleteGuest', guestName: string, date: string): void
+  (e: 'abort'): void
+}>()
+watch(props, () => {
+  if (props.visible) {
+    guestName.value = ''
+  }
+  selectedDate.value = props.date
 })
 
-const saveUser = () => {
-  emit('saveUser', userName.value)
-  emit('abort')
+
+const saveGuest = () => {
+  if (guestName.value.length > 1) {
+    emit('saveGuest', guestName.value, selectedDate.value)
+  }
+}
+
+const deleteGuest = (guest: any) => {
+  console.log('deleteGuest', guest)
+  emit('deleteGuest', guest.guest_name, selectedDate.value)
 }
 
 const getClass = () => {
@@ -52,18 +72,39 @@ onUnmounted(() => {
     <div ref="sheet" class="sheet w-full md:w-2/3 xl:w-1/3 mx-auto">
       <div class="sheet-handle"></div>
       <div class="px-5 pt-4 pb-3">
-        <p class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">Aggiunta utente</p>
+        <p class="flex items-center gap-2 text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
+          <span>Aggiunta ospite</span>
+          <span>-</span>
+          <span v-html="formatDate2(date)"/>
+        </p>
+
         <div class="flex justify-between">
           <input
               class="w-full rounded-2xl px-4 py-2 focus-visible:outline-none border border-gray-200"
               autofocus
-              v-model="userName"
-              placeholder="Nome utente..."
-              @keyup.enter="saveUser()"
+              v-model.trim="guestName"
+              placeholder="Nome ospite..."
+              @keyup.enter="saveGuest()"
           />
         </div>
+        <div class="flex flex-col gap-2" :class="{'mt-2': guests.length > 0}">
+          <div v-for="guest in (guests as any)" :key="guest.id"
+               class="flex justify-between items-center p-2 border border-gray-200 rounded-2xl">
+            <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">
+                {{ initials(guest.guest_name) }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-slate-900 truncate">{{ guest.guest_name }}</p>
+              </div>
+            </div>
+            <button type="button" @click="deleteGuest(guest)">
+              <Trash/>
+            </button>
+          </div>
+        </div>
         <div class="flex flex-col gap-2 mt-2">
-          <button @click="saveUser()"
+          <button @click="saveGuest()"
                   class="w-full py-3 rounded-2xl border bg-green-200 border-green-500 text-sm font-medium text-green-600 active:bg-green-200">
             Salva
           </button>
@@ -74,15 +115,6 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-    <dialog ref="modal" class="rounded-xl p-6 w-96 backdrop:bg-black/30">
-      <h2 class="text-base font-medium mb-4">
-        Aggiungi utente
-      </h2>
-      <div class="flex justify-end gap-2 mt-4">
-        <button @click="modal.close()" class="px-4 py-2 text-sm">Annulla</button>
-        <button @click="saveUser()" class="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg">Salva</button>
-      </div>
-    </dialog>
   </div>
 </template>
 <style scoped>

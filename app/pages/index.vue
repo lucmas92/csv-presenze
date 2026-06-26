@@ -49,6 +49,14 @@ const dayNum = (d) => {
   return date.getDate()
 }
 
+const dayMonth = (d) => {
+  const date = new Date(d)
+  return  date.toLocaleDateString('it',
+      {
+        month: 'short'
+      })
+}
+
 
 const fromQuery = computed(() => weekDays.value[0])
 const toQuery = computed(() => weekDays.value[4])
@@ -147,6 +155,7 @@ const totalPresences = (date) => {
   let guests = 0
   let total = presencesData.value
       .filter(item => item.date === date)
+      .filter(item => item.status === 'office')
       .length
 
   const b = guestsPerDay.value.get(date)
@@ -266,7 +275,7 @@ const openSheet = (user, date) => {
   selectedUserNote.value = notesDraft.value[`${user.id}-${date}`]
   setTimeout(() => {
     bottomSheetOpen.value = true
-  }, 200)
+  }, 100)
 }
 
 const closeSheets = () => {
@@ -330,7 +339,7 @@ const showAddGuest = (d) => {
   selectedDate.value = d
   setTimeout(() => {
     bottomSheetAddGuestOpen.value = true
-  }, 200)
+  }, 100)
 }
 
 </script>
@@ -370,9 +379,10 @@ const showAddGuest = (d) => {
           <div class="relative" v-for="d in weekDays" :key="d">
             <button type="button" @click="showAddGuest(d)"
                     :class="classDayStripButton(d)"
-                    class="flex flex-col items-center w-10 py-1.5 rounded-xl">
-              <span class="text-[10px] font-medium uppercase">{{ shortDayName(d) }}</span>
-              <span class="text-sm font-semibold">{{ dayNum(d) }}</span>
+                    class="flex flex-col items-center w-10 rounded-xl border py-1 border-gray-150">
+              <span class="text-[10px] font-medium uppercase" style="line-height: .8rem">{{ shortDayName(d) }}</span>
+              <span class="text-sm font-semibold" style="line-height: .8rem">{{ dayNum(d) }}</span>
+              <span class="text-sm font-medium" style="line-height: .8rem">{{ dayMonth(d) }}</span>
             </button>
             <div class="font-bold text-center">{{ totalPresences(d) }}</div>
           </div>
@@ -411,19 +421,21 @@ const showAddGuest = (d) => {
             <button v-for="d in weekDays" :key="d"
                     class="day-pill h-16" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
                     @click="openSheet(user, d)">
-            <span
+              <span
                 :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
-                class="text-[10px] font-medium">{{ shortDayName(d) }}</span>
+                class="text-[10px] font-medium">
+                {{ shortDayName(d) }}
+              </span>
               <span class="text-xs font-semibold">
                 {{ dayNum(d) }}
               </span>
               <span>
-              <Star v-if="hasNote(user.id, d)" class="absolute top-0 -right-4 text-blue-800" :size="12"/>
-              <Briefcase class="text-green-500" v-if="presences[`${user.id}-${d}`] === 'office'" :size="18"/>
-              <Home class="text-gray-500" v-else-if="presences[`${user.id}-${d}`] === 'remote'" :size="18"/>
-              <Plane class="text-orange-500" v-else-if="presences[`${user.id}-${d}`] === 'holiday'" :size="18"/>
-              <Minus v-else :size="16"/>
-            </span>
+                <Star v-if="hasNote(user.id, d)" class="absolute top-0 -right-4 text-blue-800" :size="12"/>
+                <Briefcase class="text-green-500" v-if="presences[`${user.id}-${d}`] === 'office'" :size="18"/>
+                <Home class="text-gray-500" v-else-if="presences[`${user.id}-${d}`] === 'remote'" :size="18"/>
+                <Plane class="text-orange-500" v-else-if="presences[`${user.id}-${d}`] === 'holiday'" :size="18"/>
+                <Minus v-else :size="16"/>
+              </span>
             </button>
           </div>
         </div>

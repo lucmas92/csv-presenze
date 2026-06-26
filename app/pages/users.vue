@@ -52,7 +52,7 @@ const editUser = (user) => {
     } else {
       editing.value[user.id] = !editing.value[user.id]
     }
-  }, 200)
+  }, 100)
 }
 
 const updateUser = async (user) => {
@@ -64,7 +64,7 @@ const updateUser = async (user) => {
     })
     setTimeout(() => {
       editing.value[user.id] = false
-    }, 200)
+    }, 100)
   } finally {
     loading.value = false
   }
@@ -87,13 +87,13 @@ const deleteUser = async (user) => {
     } finally {
       loading.value = false
     }
-  }, 200)
+  }, 100)
 }
 
 const openSheet = () => {
   setTimeout(() => {
     bottomSheetOpen.value = true
-  }, 200)
+  }, 100)
 }
 
 const closeSheets = () => {

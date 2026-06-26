@@ -46,7 +46,7 @@ const saveNote = () => {
   emit("saveNote", props.user.id, props.date, localUserNote.value)
   setTimeout(() => {
     modal.value.close()
-  }, 200)
+  }, 100)
 }
 
 const deleteNote = () => {
@@ -57,7 +57,7 @@ const deleteNote = () => {
 const abort = () => {
   setTimeout(() => {
     emit("abort")
-  }, 200)
+  }, 100)
 }
 
 const getClass = () => {
@@ -67,7 +67,7 @@ const getClass = () => {
 const showAddNoteModal = () => {
   setTimeout(() => {
     modal.value.showModal()
-  }, 200)
+  }, 100)
 }
 
 const handleKeyDown = (event: any) => {

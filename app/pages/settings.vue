@@ -2,9 +2,14 @@
 import {
   Calendar1,
   TriangleAlert,
-    Lock
+  Lock
 } from 'lucide-vue-next'
 import Header from "~/components/Header.vue";
+import AffollamentoPerGiorno from "~/components/stats/AffollamentoPerGiorno.vue";
+import StatoPerPersona from "~/components/stats/StatoPerPersona.vue";
+import ColleghiVsOspiti from "~/components/stats/ColleghiVsOspiti.vue";
+import TrendSettimanale from "~/components/stats/TrendSettimanale.vue";
+import PresenzePerPersona from "~/components/stats/PresenzePerPersona.vue";
 </script>
 <template>
 
@@ -22,7 +27,12 @@ import Header from "~/components/Header.vue";
       </template>
     </Header>
     <div
-         class="flex gap-4 flex-col items-center justify-center min-h-64">
+        class="flex gap-4 flex-wrap items-center justify-center min-h-64">
+      <AffollamentoPerGiorno/>
+      <StatoPerPersona/>
+      <PresenzePerPersona/>
+      <ColleghiVsOspiti/>
+      <TrendSettimanale/>
     </div>
   </div>
 </template>

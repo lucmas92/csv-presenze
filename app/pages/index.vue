@@ -26,8 +26,10 @@ const selectedUserNote = ref(null)
 const selectedDate = ref(null)
 const selectedGuestDate = ref(null)
 const searchQuery = ref('')
+const loading = ref(false)
 const bottomSheetOpen = ref(false)
 const bottomSheetAddGuestOpen = ref(false)
+const favoriteUser = ref(null)
 const today = ref(new Date().toLocaleDateString('sv-SE'))
 
 // 📅 settimana corrente
@@ -51,7 +53,7 @@ const dayNum = (d) => {
 
 const dayMonth = (d) => {
   const date = new Date(d)
-  return  date.toLocaleDateString('it',
+  return date.toLocaleDateString('it',
       {
         month: 'short'
       })
@@ -122,13 +124,22 @@ const {data: presencesData, refresh: refreshPresences} = await useFetch('/api/pr
 
 const availableUsers = computed(() => {
   if (!users.value) return [{name: '', id: 0}]
+  let filtered = users.value
+
+  // rimuovo l'utente preferito se presente
+  if (favoriteUser.value) {
+    filtered = users.value.filter((user) => {
+      return user.id !== favoriteUser.value
+    })
+  }
 
   if (searchQuery.value === '')
-    return users.value.sort((a, b) => a.name.localeCompare(b.name))
+    return filtered.sort((a, b) => a.name.localeCompare(b.name))
 
-  const filtered = users.value.filter((user) => {
+  filtered = filtered.filter((user) => {
     return user['name'].toLowerCase().includes(searchQuery.value.toLowerCase())
   })
+
   return filtered.sort((a, b) => a.name.localeCompare(b.name))
 })
 
@@ -297,7 +308,24 @@ const onSaveGuest = async (guest_name, date) => {
     body: {guest_name: guest_name, date}
   })
 
-  refreshGuests()
+  await refreshGuests()
+}
+
+const loadFavoriteUsers = async () => {
+  favoriteUser.value = parseInt(localStorage.getItem('favorite_user'))
+  setTimeout(() => {
+    loading.value = false
+  }, 200)
+}
+
+onBeforeMount(() => {
+  loading.value = true
+  loadFavoriteUsers()
+})
+
+const setFavorite = async (user) => {
+  localStorage.setItem('favorite_user', user.id)
+  await loadFavoriteUsers()
 }
 
 const onDeleteGuest = async (guest_name, date) => {
@@ -306,8 +334,13 @@ const onDeleteGuest = async (guest_name, date) => {
     method: 'DELETE',
     body: {guest_name: guest_name, date: date}
   })
-  refreshGuests()
+  await refreshGuests()
 }
+
+
+const favoriteUserData = computed(() => {
+  return users.value.find(u => u.id === favoriteUser.value)
+})
 
 const onSetStatus = async (userId, date, status) => {
 
@@ -389,76 +422,123 @@ const showAddGuest = (d) => {
         </div>
       </template>
     </Header>
+    <Transition name="fade">
+      <div class="w-100 mx-1 md:mx-3" v-if="!loading">
+        <div id="dashboard" class="grid m-2 grid-cols-2 lg:grid-cols-4 gap-3 items-center justify-center py-1">
+          <Widget class="bg-green-200" :count="countByStatus['office'] ?? 0" description="Presenti">
+            <Briefcase :size="14"/>
+          </Widget>
+          <Widget class="bg-blue-200" :count="countOspiti" description="Ospiti">
+            <Users :size="14"/>
+          </Widget>
+          <Widget class="bg-gray-200" :count="countByStatus['remote'] ?? 0" description="Da casa">
+            <Home :size="14"/>
+          </Widget>
+          <Widget class="bg-orange-200" :count="countByStatus['holiday'] ?? 0" description="In ferie">
+            <Plane :size="14"/>
+          </Widget>
+        </div>
+        <input type="text" v-model="searchQuery" class="px-7 py-2 w-full mb-2 rounded-xl" placeholder="Ricerca...">
+        <div id="user-list" class="">
 
-    <div class="w-100 mx-1 md:mx-3">
-      <div id="dashboard" class="grid m-2 grid-cols-2 lg:grid-cols-4 gap-3 items-center justify-center py-1">
-        <Widget class="bg-green-200" :count="countByStatus['office'] ?? 0" description="Presenti">
-          <Briefcase :size="14"/>
-        </Widget>
-        <Widget class="bg-blue-200" :count="countOspiti" description="Ospiti">
-          <Users :size="14"/>
-        </Widget>
-        <Widget class="bg-gray-200" :count="countByStatus['remote'] ?? 0" description="Da casa">
-          <Home :size="14"/>
-        </Widget>
-        <Widget class="bg-orange-200" :count="countByStatus['holiday'] ?? 0" description="In ferie">
-          <Plane :size="14"/>
-        </Widget>
-      </div>
-      <input type="text" v-model="searchQuery" class="px-7 py-2 w-full mb-2 rounded-xl" placeholder="Ricerca...">
-      <div id="user-list" class="">
-        <div v-for="user in availableUsers" :key="user.name" class="user-card mb-2 shadow-sm">
-          <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
-            <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">
-              {{ initials(user.name) }}
+          <div v-if="favoriteUserData" class="user-card mb-2 shadow-sm bg-white border border-2 border-orange-400">
+            <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">
+                {{ initials(favoriteUserData.name) }}
+              </div>
+              <div class="flex-1 flex items-center min-w-0">
+                <p class="text-sm font-semibold text-slate-900 truncate">{{ favoriteUserData.name }}</p>
+                <span @click="setFavorite(favoriteUserData)">
+                <Star class="ml-2 text-gray-400 cursor-pointer hover:text-gray-900"
+                      :class="{'font-bold text-gray-900': favoriteUser === favoriteUserData.id}"
+                      :size="15"/>
+              </span>
+              </div>
+              <span class="text-sm shrink-0">{{ countByUser(favoriteUserData) }}/5</span>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-slate-900 truncate">{{ user.name }}</p>
-            </div>
-            <span class="text-sm shrink-0">{{ countByUser(user) }}/5</span>
-          </div>
-          <div class="flex justify-around px-2 py-3">
-            <button v-for="d in weekDays" :key="d"
-                    class="day-pill h-16" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
-                    @click="openSheet(user, d)">
+
+            <div class="flex justify-around px-2 py-3">
+              <button v-for="d in weekDays" :key="d"
+                      class="day-pill h-16" :class="getDayPillClass(d, presences[`${favoriteUser}-${d}`])"
+                      @click="openSheet(favoriteUserData, d)">
               <span
-                :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
-                class="text-[10px] font-medium">
+                  :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
+                  class="text-[10px] font-medium">
                 {{ shortDayName(d) }}
               </span>
-              <span class="text-xs font-semibold">
+                <span class="text-xs font-semibold">
                 {{ dayNum(d) }}
               </span>
-              <span>
+                <span>
+                <Star v-if="hasNote(favoriteUser, d)" class="absolute top-0 -right-4 text-blue-800" :size="12"/>
+                <Briefcase class="text-green-500" v-if="presences[`${favoriteUser}-${d}`] === 'office'" :size="18"/>
+                <Home class="text-gray-500" v-else-if="presences[`${favoriteUser}-${d}`] === 'remote'" :size="18"/>
+                <Plane class="text-orange-500" v-else-if="presences[`${favoriteUser}-${d}`] === 'holiday'" :size="18"/>
+                <Minus v-else :size="16"/>
+              </span>
+              </button>
+            </div>
+          </div>
+
+
+          <div v-for="user in availableUsers" :key="user.name" class="user-card bg-white mb-2 shadow-sm">
+            <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">
+                {{ initials(user.name) }}
+              </div>
+              <div class="flex-1 flex items-center min-w-0">
+                <p class="text-sm font-semibold text-slate-900 truncate">{{ user.name }}</p>
+                <span @click="setFavorite(user)">
+                <Star class="ml-2 text-gray-400 cursor-pointer hover:text-gray-900"
+                      :class="{'font-bold text-gray-900': favoriteUser === user.id}"
+                      :size="15"/>
+              </span>
+              </div>
+              <span class="text-sm shrink-0">{{ countByUser(user) }}/5</span>
+            </div>
+            <div class="flex justify-around px-2 py-3">
+              <button v-for="d in weekDays" :key="d"
+                      class="day-pill h-16" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
+                      @click="openSheet(user, d)">
+              <span
+                  :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
+                  class="text-[10px] font-medium">
+                {{ shortDayName(d) }}
+              </span>
+                <span class="text-xs font-semibold">
+                {{ dayNum(d) }}
+              </span>
+                <span>
                 <Star v-if="hasNote(user.id, d)" class="absolute top-0 -right-4 text-blue-800" :size="12"/>
                 <Briefcase class="text-green-500" v-if="presences[`${user.id}-${d}`] === 'office'" :size="18"/>
                 <Home class="text-gray-500" v-else-if="presences[`${user.id}-${d}`] === 'remote'" :size="18"/>
                 <Plane class="text-orange-500" v-else-if="presences[`${user.id}-${d}`] === 'holiday'" :size="18"/>
                 <Minus v-else :size="16"/>
               </span>
-            </button>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <BottomSheet v-if="selectedUser"
-                   :visible="bottomSheetOpen"
-                   :user="selectedUser"
-                   :date="selectedDate"
-                   :userNote="selectedUserNote"
-                   @setStatus="onSetStatus"
-                   @abort="closeSheets"
-                   @saveNote="onSaveNote"
-      />
-      <BottomSheetAddGuest v-if="selectedDate"
-                           :guests="guestsPerDay.get(selectedDate) || []"
-                           :date="selectedDate"
-                           :visible="bottomSheetAddGuestOpen"
-                           @saveGuest="onSaveGuest"
-                           @deleteGuest="onDeleteGuest"
-                           onDeleteGuest="onDeleteGuest"
-                           @abort="closeGuestSheets"/>
+        <BottomSheet v-if="selectedUser"
+                     :visible="bottomSheetOpen"
+                     :user="selectedUser"
+                     :date="selectedDate"
+                     :userNote="selectedUserNote"
+                     @setStatus="onSetStatus"
+                     @abort="closeSheets"
+                     @saveNote="onSaveNote"
+        />
+        <BottomSheetAddGuest v-if="selectedDate"
+                             :guests="guestsPerDay.get(selectedDate) || []"
+                             :date="selectedDate"
+                             :visible="bottomSheetAddGuestOpen"
+                             @saveGuest="onSaveGuest"
+                             @deleteGuest="onDeleteGuest"
+                             onDeleteGuest="onDeleteGuest"
+                             @abort="closeGuestSheets"/>
 
-    </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -484,7 +564,6 @@ const showAddGuest = (d) => {
 
 /* User card */
 .user-card {
-  background: #fff;
   border-radius: 16px;
   overflow: hidden;
 }
@@ -492,4 +571,31 @@ const showAddGuest = (d) => {
 .user-card + .user-card {
   margin-top: 8px;
 }
+
+/* 1. Stato iniziale quando l'elemento entra (Iniziamo da opacità 0) */
+.fade-enter-from {
+  opacity: 0;
+}
+
+/* 2. Stato attivo dell'animazione (Definiamo la durata e la curva) */
+.fade-enter-active {
+  transition: opacity 0.5s ease;
+}
+
+/* 3. Stato finale dell'animazione (Opacità totale) */
+.fade-enter-to {
+  opacity: 1;
+}
+
+/* --- FACOLTATIVO: Se vuoi gestire anche il Fade-Out quando scompare --- */
+.fade-leave-from {
+  opacity: 1;
+}
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-leave-to {
+  opacity: 0;
+}
+
 </style>

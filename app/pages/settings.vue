@@ -1,7 +1,5 @@
 <script setup>
 import {
-  Calendar1,
-  TriangleAlert,
   Lock
 } from 'lucide-vue-next'
 import Header from "~/components/Header.vue";

@@ -6,10 +6,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
     const publicRoutes = ['/login']
 
-    if (!auth.isResolved) {
-        await auth.fetchMe()
-    }
-
     if (!auth.isAuthenticated && !publicRoutes.includes(to.path)) {
         return navigateTo('/login')
     }

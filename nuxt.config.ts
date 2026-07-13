@@ -6,5 +6,8 @@ export default defineNuxtConfig({
     modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
     nitro: {
         preset: "netlify"
+    },
+    runtimeConfig: {
+        jwtSecret: process.env.JWT_SECRET // Disponibile solo lato server
     }
 })

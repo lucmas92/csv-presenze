@@ -1,9 +1,11 @@
 import db from "#server/db/client";
 import {randomUUID} from "node:crypto";
 import {verifyPassword} from "~/utils/password";
+import jwt from 'jsonwebtoken'
 
 interface User {
     id: number,
+    username: string,
     password_hash: string,
     role: string,
     is_active: boolean,
@@ -30,6 +32,7 @@ export default defineEventHandler(async (event) => {
     `).all(username) as User[]
 
 
+
     const user = users[0]
     if (!user) {
         throw createError({
@@ -47,30 +50,30 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    const sessionId = randomUUID()
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    const config = useRuntimeConfig(event)
+    const token = jwt.sign(
+        {
+            userId: user.id,
+            username: user.username
+        },
+        config.jwtSecret, // La chiave segreta definita nel nuxt.config
+        {
+            expiresIn: '1d' // Il token scadrà automaticamente dopo 1 giorno
+        }
+    )
 
-    // await db.session.create({
-    //     data: {
-    //         id: sessionId,
-    //         userId: user.id,
-    //         expiresAt,
-    //     },
-    // })
-
-    setCookie(event, 'session_id', sessionId, {
-        httpOnly: true,
+    setCookie(event, 'auth_token', token, {
+        httpOnly: true, // Più sicuro, il JS del frontend non può leggerlo
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        expires: expiresAt,
+        maxAge: 60 * 60 * 24 // 1 giorno
     })
 
     return {
         ok: true,
+        token: token,
         user: {
-            id: 1,
-            name: 'Luca'
+            id: user.id,
+            name: user.username,
         },
     }
 })

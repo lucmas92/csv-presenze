@@ -4,9 +4,6 @@ export default defineNuxtConfig({
     compatibilityDate: '2025-07-15',
     devtools: {enabled: true},
     modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
-    nitro: {
-        preset: "netlify"
-    },
     runtimeConfig: {
         jwtSecret: process.env.JWT_SECRET // Disponibile solo lato server
     }

@@ -23,9 +23,7 @@ async function submit() {
         await navigateTo('/')
       }))
       .catch(((error) => {
-        console.log('error login')
-        console.dir(error)
-        errors.value = error.statusMessage
+        errors.value = error.data.message
       }))
       .finally(() => {
 

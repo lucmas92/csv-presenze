@@ -309,7 +309,7 @@ const onSaveGuest = async (guest_name, date) => {
     method: 'POST',
     body: {guest_name: guest_name, date}
   }).catch((err) => {
-    addGuestError.value = err.statusMessage
+    addGuestError.value = err.data.message
   })
 
   await refreshGuests()

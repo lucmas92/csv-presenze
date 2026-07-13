@@ -22,7 +22,11 @@ async function submit() {
         await auth.fetchMe()
         await navigateTo('/')
       }))
-      .catch((error => errors.value = error.statusMessage))
+      .catch(((error) => {
+        console.log('error login')
+        console.dir(error)
+        errors.value = error.statusMessage
+      }))
       .finally(() => {
 
       })

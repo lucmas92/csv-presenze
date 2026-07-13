@@ -3,7 +3,7 @@ export default defineNuxtConfig({
     ssr: true,
     compatibilityDate: '2025-07-15',
     devtools: {enabled: true},
-    modules: ['@nuxtjs/tailwindcss'],
+    modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
     nitro: {
         preset: "netlify"
     }

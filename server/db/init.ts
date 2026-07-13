@@ -2,6 +2,15 @@ import db from './client'
 
 export function initDB() {
     db.exec(`
+        CREATE TABLE IF NOT EXISTS accounts
+        (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            username      VARCHAR(255) NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            role          VARCHAR(50)  NOT NULL,
+            is_active     TINYINT(1)   NOT NULL DEFAULT 1,
+            last_login_at DATETIME     NULL
+        );
         CREATE TABLE IF NOT EXISTS users
         (
             id   INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,9 +34,9 @@ export function initDB() {
 
         CREATE TABLE IF NOT EXISTS guests
         (
-            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
             guest_name TEXT,
-            date      TEXT    NOT NULL, -- YYYY-MM-DD
+            date       TEXT NOT NULL, -- YYYY-MM-DD
             UNIQUE (guest_name, date)
         );
 

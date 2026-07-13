@@ -2,13 +2,23 @@
 import pkg from '../package.json'
 import {
   Users,
-  Calendar1, Settings, LayoutGrid
+  Calendar1, Settings, LayoutGrid, LogOut
 } from 'lucide-vue-next'
+import {useAuthStore} from "~/stores/auth.ts";
+
+const auth = useAuthStore()
+
+const logout = async () => {
+  await auth.logout().then(() => {
+    navigateTo('/login')
+  })
+}
 </script>
 <template>
   <div class="flex min-h-screen md:h-screen md:overflow-hidden">
     <!-- ── SIDEBAR (hidden mobile, visible desktop) ── -->
-    <aside class="hidden md:flex w-16 bg-white border-r border-slate-100 flex-col items-center py-5 gap-6 shrink-0">
+    <aside v-if="auth.isAuthenticated"
+           class="hidden md:flex w-16 bg-white border-r border-slate-100 flex-col items-center py-5 gap-6 shrink-0">
       <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
         <LayoutGrid class="text-white" :size="14"/>
       </div>
@@ -31,27 +41,32 @@ import {
       </nav>
       <div class="mt-auto">
         <div
-            class="w-8 h-8 mb-2 rounded-full bg-blue-500 flex items-center justify-center text-blue-100 text-xs font-semibold">
-          CSV
+            @click="logout"
+            class="w-8 h-8 mb-2 rounded-full text-slate-400 active:scale-90">
+          <LogOut/>
         </div>
-        v{{pkg.version}}
+        v{{ pkg.version }}
       </div>
     </aside>
     <main class="w-full mx-1">
       <NuxtPage/>
       <!-- ── BOTTOM NAV (mobile only) ── -->
-      <nav class="bottom-nav flex md:hidden">
-        <NuxtLink to="/" exact class="text-slate-400">
+      <nav v-if="auth.isAuthenticated" class="bottom-nav flex md:hidden">
+        <NuxtLink to="/" exact class="text-slate-400 my-2">
           <Calendar1/>
-          <span class="text-xs font-medium text-slate-400">Calendario</span>
+<!--          <span class="text-xs font-medium text-slate-400">Calendario</span>-->
         </NuxtLink>
-        <NuxtLink to="/users" class="text-slate-400">
+        <NuxtLink to="/users" class="text-slate-400 my-2">
           <Users/>
-          <span class="text-xs font-medium">Utenti</span>
+<!--          <span class="text-xs font-medium">Utenti</span>-->
         </NuxtLink>
-        <NuxtLink to="/settings" class="text-slate-400">
+        <NuxtLink to="/settings" class="text-slate-400 my-2">
           <settings/>
-          <span class="text-xs font-medium">Impostazioni</span>
+<!--          <span class="text-xs font-medium">Impostazioni</span>-->
+        </NuxtLink>
+        <NuxtLink @click="logout" class="text-slate-400 my-2 active:scale-90">
+          <LogOut/>
+          <!--          <span class="text-xs font-medium">LogOut</span>-->
         </NuxtLink>
       </nav>
     </main>

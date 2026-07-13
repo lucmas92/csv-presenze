@@ -31,6 +31,7 @@ const bottomSheetOpen = ref(false)
 const bottomSheetAddGuestOpen = ref(false)
 const favoriteUser = ref(null)
 const today = ref(new Date().toLocaleDateString('sv-SE'))
+const addGuestError = ref("")
 
 // 📅 settimana corrente
 const weekDays = computed(() =>
@@ -301,11 +302,14 @@ const closeGuestSheets = () => {
 }
 
 const onSaveGuest = async (guest_name, date) => {
+  addGuestError.value = ""
 
   // 💾 UPSERT
   await $fetch('/api/guests', {
     method: 'POST',
     body: {guest_name: guest_name, date}
+  }).catch((err) => {
+    addGuestError.value = err.statusMessage
   })
 
   await refreshGuests()
@@ -412,12 +416,12 @@ const showAddGuest = (d) => {
           <div class="relative" v-for="d in weekDays" :key="d">
             <button type="button" @click="showAddGuest(d)"
                     :class="classDayStripButton(d)"
-                    class="flex flex-col items-center w-10 rounded-xl border py-1 border-gray-150">
-              <span class="text-[10px] font-medium uppercase" style="line-height: .8rem">{{ shortDayName(d) }}</span>
+                    class="flex flex-col items-center w-10 rounded-xl border p-2 border-gray-150">
+              <span class="text-[9px] font-medium uppercase" style="line-height: .8rem">{{ shortDayName(d) }}</span>
               <span class="text-sm font-semibold" style="line-height: .8rem">{{ dayNum(d) }}</span>
-              <span class="text-sm font-medium" style="line-height: .8rem">{{ dayMonth(d) }}</span>
+              <span class="text-[9px] font-medium" style="line-height: .8rem">{{ dayMonth(d) }}</span>
             </button>
-            <div class="font-bold text-center">{{ totalPresences(d) }}</div>
+            <div class="font-light text-center">{{ totalPresences(d) }}</div>
           </div>
         </div>
       </template>
@@ -532,6 +536,7 @@ const showAddGuest = (d) => {
                              :guests="guestsPerDay.get(selectedDate) || []"
                              :date="selectedDate"
                              :visible="bottomSheetAddGuestOpen"
+                             :errors="addGuestError"
                              @saveGuest="onSaveGuest"
                              @deleteGuest="onDeleteGuest"
                              onDeleteGuest="onDeleteGuest"

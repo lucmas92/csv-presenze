@@ -2,6 +2,9 @@
 import {Trash} from 'lucide-vue-next'
 import {ref} from "vue";
 import {initials} from "~/utils/utils";
+import {
+  Plus
+} from 'lucide-vue-next'
 
 const props = defineProps({
   date: {
@@ -16,6 +19,9 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  errors: {
+    type: String,
+  }
 })
 
 const sheet = ref()
@@ -76,8 +82,11 @@ onUnmounted(() => {
           <span>-</span>
           <span v-html="formatDate2(date)"/>
         </p>
+        <span class="text-red-400">
+            {{ errors }}
+          </span>
 
-        <div class="flex justify-between">
+        <div class="flex justify-between gap-2">
           <input
               class="w-full rounded-2xl px-4 py-2 focus-visible:outline-none border border-gray-200"
               autofocus
@@ -85,12 +94,18 @@ onUnmounted(() => {
               placeholder="Nome ospite..."
               @keyup.enter="saveGuest()"
           />
+          <button @click="saveGuest()"
+                  :disabled="!guestName"
+                  class="w-12 py-3 rounded-2xl border bg-green-200 border-green-500 text-sm font-medium text-green-600 active:bg-green-200 disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-400">
+            <Plus :size="12" class="mx-auto"/>
+          </button>
         </div>
         <div class="flex flex-col gap-2" :class="{'mt-2': guests.length > 0}">
           <div v-for="guest in (guests as any)" :key="guest.id"
                class="flex justify-between items-center p-2 border border-gray-200 rounded-2xl">
-            <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
-              <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">
+            <div class="flex items-center gap-3 px-4 py-2 border-b border-slate-50">
+              <div
+                  class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-xs font-semibold shrink-0">
                 {{ initials(guest.guest_name) }}
               </div>
               <div class="flex-1 min-w-0">
@@ -103,10 +118,10 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="flex flex-col gap-2 mt-2">
-          <button @click="saveGuest()"
-                  class="w-full py-3 rounded-2xl border bg-green-200 border-green-500 text-sm font-medium text-green-600 active:bg-green-200">
-            Salva
-          </button>
+<!--          <button @click="saveGuest()"-->
+<!--                  class="w-full py-3 rounded-2xl border bg-green-200 border-green-500 text-sm font-medium text-green-600 active:bg-green-200">-->
+<!--            Salva-->
+<!--          </button>-->
           <button @click="abort()"
                   class="w-full py-3 rounded-2xl border border-slate-200 text-sm font-medium text-slate-600 active:bg-slate-50">
             Chiudi

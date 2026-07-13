@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
+  StickyNote,
   Users
 } from 'lucide-vue-next'
 import Widget from '~/components/Widget.vue'
@@ -474,7 +475,7 @@ const showAddGuest = (d) => {
                 {{ dayNum(d) }}
               </span>
                 <span>
-                <Star v-if="hasNote(favoriteUser, d)" class="absolute top-0 -right-4 text-blue-800" :size="12"/>
+                <StickyNote v-if="hasNote(favoriteUser, d)" class="absolute top-0 -right-5 text-blue-800" :size="12"/>
                 <Briefcase class="text-green-500" v-if="presences[`${favoriteUser}-${d}`] === 'office'" :size="18"/>
                 <Home class="text-gray-500" v-else-if="presences[`${favoriteUser}-${d}`] === 'remote'" :size="18"/>
                 <Plane class="text-orange-500" v-else-if="presences[`${favoriteUser}-${d}`] === 'holiday'" :size="18"/>

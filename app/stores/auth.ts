@@ -21,7 +21,6 @@ export const useAuthStore = defineStore('auth', {
 
     actions: {
         async fetchMe() {
-            console.log('fetchme')
             if (this.pending) return
             this.pending = true
 

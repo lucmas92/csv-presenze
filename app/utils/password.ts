@@ -6,7 +6,5 @@ export async function hashPassword(password: string) {
 }
 
 export async function verifyPassword(password: string, hashedPassword: string) {
-    console.log('password', password)
-    console.log('hashedPassword', hashedPassword)
     return await compare(password, hashedPassword)
 }

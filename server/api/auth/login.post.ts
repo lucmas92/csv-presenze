@@ -16,8 +16,6 @@ export default defineEventHandler(async (event) => {
     const username = typeof body?.username === 'string' ? body.username.trim() : ''
     const password = typeof body?.password === 'string' ? body.password : ''
 
-    console.log('body',body)
-
     if (!username || !password) {
         throw createError({
             statusCode: 400,
@@ -33,7 +31,6 @@ export default defineEventHandler(async (event) => {
 
 
     const user = users[0]
-    console.log('#############', user)
     if (!user) {
         throw createError({
             statusCode: 401,

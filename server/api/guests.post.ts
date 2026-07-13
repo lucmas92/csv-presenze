@@ -15,7 +15,6 @@ export default defineEventHandler(async (event) => {
         stmt.run(guest_name, date)
     }catch(e){
         if (e instanceof SqliteError && e.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-            console.log(`SQL ERROR: ${e.message}`)
             throw createError({
                 statusCode: 400,
                 statusMessage: 'Guest già registrato per questa data',

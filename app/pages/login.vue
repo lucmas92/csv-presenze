@@ -19,7 +19,6 @@ async function submit() {
     credentials: 'include',
   })
       .then((async (response) => {
-        console.log('response', response)
         await auth.fetchMe()
         await navigateTo('/')
       }))

@@ -12,6 +12,14 @@ export function initDB() {
             last_login_at DATETIME    NULL
         );
 
+        CREATE TABLE IF NOT EXISTS user_favorites
+        (
+            user_id          INTEGER NOT NULL,
+            favorite_user_id INTEGER NOT NULL,
+            
+            UNIQUE (user_id, favorite_user_id)
+        );
+
         CREATE TABLE IF NOT EXISTS weeks
         (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,

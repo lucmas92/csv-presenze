@@ -21,18 +21,18 @@ const notesDraft = ref({})
 const modal = useTemplateRef('modal')
 
 const currentMonday = ref(getCurrentWeek()[0])
-const selectedUserId = ref(null)
 const selectedUser = ref(null)
 const selectedUserNote = ref(null)
 const selectedDate = ref(null)
-const selectedGuestDate = ref(null)
 const searchQuery = ref('')
 const loading = ref(false)
 const bottomSheetOpen = ref(false)
 const bottomSheetAddGuestOpen = ref(false)
-const favoriteUser = ref(null)
 const today = ref(new Date().toLocaleDateString('sv-SE'))
 const addGuestError = ref("")
+
+const auth = useAuthStore()
+const user = computed(() => auth.user)
 
 // 📅 settimana corrente
 const weekDays = computed(() =>
@@ -82,6 +82,8 @@ const to = computed(() => {
       })
 })
 
+const {data: favorites, refresh: refreshFavorites} = await useFetch('/api/favorites', {query: {userId: user.value.id}})
+
 const {data: users, refresh: refreshUsers} = await useFetch('/api/users')
 const {data: notesData, refresh: refreshNotes} = await useFetch('/api/notes', {
   query: {
@@ -126,13 +128,14 @@ const {data: presencesData, refresh: refreshPresences} = await useFetch('/api/pr
 
 const availableUsers = computed(() => {
   if (!users.value) return [{name: '', id: 0}]
-  let filtered = users.value
 
+  let filtered = users.value.filter((u) => {
+    return u.id !== user.value.id
+  })
   // rimuovo l'utente preferito se presente
-  if (favoriteUser.value) {
-    filtered = users.value.filter((user) => {
-      return user.id !== favoriteUser.value
-    })
+  if (favorites.value) {
+    const idsDaRimuovere = new Set(favorites.value.map(item => item.favorite_user_id))
+    filtered = users.value.filter((u) => !idsDaRimuovere.has(u.id))
   }
 
   if (searchQuery.value === '')
@@ -199,13 +202,6 @@ const countByUser = (user) => {
       .length
 }
 
-const countToday = computed(() => {
-  if (!presencesData.value) return {}
-  return presencesData.value
-      .filter(item => item.date === today.value)
-      .length
-})
-
 const presences = computed(() => {
   const map = {}
 
@@ -219,7 +215,6 @@ const presences = computed(() => {
   return map
 })
 
-let timeout
 const onSaveNote = async (userId, date, note) => {
   const key = `${userId}-${date}`
 
@@ -275,13 +270,6 @@ const getDayPillClass = (date, status) => {
   return classes
 }
 
-const showAddNoteModal = (userId, date) => {
-  selectedUserId.value = userId
-  selectedDate.value = date
-  modal.value.showModal()
-}
-
-
 const openSheet = (user, date) => {
   selectedUser.value = user
   selectedDate.value = date
@@ -316,21 +304,35 @@ const onSaveGuest = async (guest_name, date) => {
   await refreshGuests()
 }
 
-const loadFavoriteUsers = async () => {
-  favoriteUser.value = parseInt(localStorage.getItem('favorite_user'))
-  setTimeout(() => {
-    loading.value = false
-  }, 200)
-}
+const favoriteUsers = computed(() => {
+  const idsDaRimuovere = new Set(favorites.value.map(item => item.favorite_user_id))
+  return users.value.filter((u) => idsDaRimuovere.has(u.id)).sort((a, b) => a.name.localeCompare(b.name))
+})
+
 
 onBeforeMount(() => {
   loading.value = true
-  loadFavoriteUsers()
+  setTimeout(() => {
+    loading.value = false
+  }, 200)
 })
 
-const setFavorite = async (user) => {
-  localStorage.setItem('favorite_user', user.id)
-  await loadFavoriteUsers()
+const deleteFavorite = async (favorite) => {
+  await $fetch('/api/favorites', {
+    method: 'DELETE',
+    body: {user_id: user.value.id, favorite_user_id: "" + favorite.id}
+  })
+  await refreshFavorites()
+}
+
+const setFavorite = async (favorite) => {
+
+  const payload = {user_id: "" + user.value.id, favorite_user_id: "" + favorite.id}
+  await $fetch('/api/favorites', {
+    method: 'POST',
+    body: payload
+  })
+  await refreshFavorites()
 }
 
 const onDeleteGuest = async (guest_name, date) => {
@@ -341,11 +343,6 @@ const onDeleteGuest = async (guest_name, date) => {
   })
   await refreshGuests()
 }
-
-
-const favoriteUserData = computed(() => {
-  return users.value.find(u => u.id === favoriteUser.value)
-})
 
 const onSetStatus = async (userId, date, status) => {
 
@@ -445,27 +442,21 @@ const showAddGuest = (d) => {
         </div>
         <input type="text" v-model="searchQuery" class="px-7 py-2 w-full mb-2 rounded-xl" placeholder="Ricerca...">
         <div id="user-list" class="">
-
-          <div v-if="favoriteUserData" class="user-card mb-2 shadow-sm bg-white border border-2 border-orange-400">
+          <div class="user-card mb-2 shadow-sm bg-white border-2 border-orange-400">
             <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
               <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">
-                {{ initials(favoriteUserData.name) }}
+                {{ initials(user.name) }}
               </div>
               <div class="flex-1 flex items-center min-w-0">
-                <p class="text-sm font-semibold text-slate-900 truncate">{{ favoriteUserData.name }}</p>
-                <span @click="setFavorite(favoriteUserData)">
-                <Star class="ml-2 text-gray-400 cursor-pointer hover:text-gray-900"
-                      :class="{'font-bold text-gray-900': favoriteUser === favoriteUserData.id}"
-                      :size="15"/>
-              </span>
+                <p class="text-sm font-semibold text-slate-900 truncate">{{ user.name }}</p>
               </div>
-              <span class="text-sm shrink-0">{{ countByUser(favoriteUserData) }}/5</span>
+              <span class="text-sm shrink-0">{{ countByUser(user) }}/5</span>
             </div>
 
             <div class="flex justify-around px-2 py-3">
               <button v-for="d in weekDays" :key="d"
-                      class="day-pill h-16" :class="getDayPillClass(d, presences[`${favoriteUser}-${d}`])"
-                      @click="openSheet(favoriteUserData, d)">
+                      class="day-pill h-16" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
+                      @click="openSheet(user, d)">
               <span
                   :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
                   class="text-[10px] font-medium">
@@ -475,10 +466,49 @@ const showAddGuest = (d) => {
                 {{ dayNum(d) }}
               </span>
                 <span>
-                <StickyNote v-if="hasNote(favoriteUser, d)" class="absolute top-0 -right-5 text-blue-800" :size="12"/>
-                <Briefcase class="text-green-500" v-if="presences[`${favoriteUser}-${d}`] === 'office'" :size="18"/>
-                <Home class="text-gray-500" v-else-if="presences[`${favoriteUser}-${d}`] === 'remote'" :size="18"/>
-                <Plane class="text-orange-500" v-else-if="presences[`${favoriteUser}-${d}`] === 'holiday'" :size="18"/>
+                <StickyNote v-if="hasNote(user.id, d)" class="absolute top-0 -right-5 text-blue-800" :size="12"/>
+                <Briefcase class="text-green-500" v-if="presences[`${user.id}-${d}`] === 'office'" :size="18"/>
+                <Home class="text-gray-500" v-else-if="presences[`${user.id}-${d}`] === 'remote'" :size="18"/>
+                <Plane class="text-orange-500" v-else-if="presences[`${user.id}-${d}`] === 'holiday'" :size="18"/>
+                <Minus v-else :size="16"/>
+              </span>
+              </button>
+            </div>
+          </div>
+
+
+          <div v-for="favorite in favoriteUsers"
+               class="user-card mb-2 shadow-sm bg-white border-2 border-green-400">
+            <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">
+                {{ initials(favorite.name) }}
+              </div>
+              <div class="flex-1 flex items-center min-w-0">
+                <p class="text-sm font-semibold text-slate-900 truncate">{{ favorite.name }}</p>
+                <span @click="deleteFavorite(favorite)">
+                  <Star class="ml-2 cursor-pointer hover:text-gray-900 font-bold text-gray-900"
+                        :size="15"/>
+                </span>
+              </div>
+              <span class="text-sm shrink-0">{{ countByUser(favorite) }}/5</span>
+            </div>
+
+            <div class="flex justify-around px-2 py-3">
+              <button v-for="d in weekDays" :key="d"
+                      class="day-pill h-16" :class="getDayPillClass(d, presences[`${favorite.id}-${d}`])">
+              <span
+                  :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
+                  class="text-[10px] font-medium">
+                {{ shortDayName(d) }}
+              </span>
+                <span class="text-xs font-semibold">
+                {{ dayNum(d) }}
+              </span>
+                <span>
+                <StickyNote v-if="hasNote(favorite.id, d)" class="absolute top-0 -right-5 text-blue-800" :size="12"/>
+                <Briefcase class="text-green-500" v-if="presences[`${favorite.id}-${d}`] === 'office'" :size="18"/>
+                <Home class="text-gray-500" v-else-if="presences[`${favorite.id}-${d}`] === 'remote'" :size="18"/>
+                <Plane class="text-orange-500" v-else-if="presences[`${favorite.id}-${d}`] === 'holiday'" :size="18"/>
                 <Minus v-else :size="16"/>
               </span>
               </button>
@@ -494,17 +524,16 @@ const showAddGuest = (d) => {
               <div class="flex-1 flex items-center min-w-0">
                 <p class="text-sm font-semibold text-slate-900 truncate">{{ user.name }}</p>
                 <span @click="setFavorite(user)">
-                <Star class="ml-2 text-gray-400 cursor-pointer hover:text-gray-900"
-                      :class="{'font-bold text-gray-900': favoriteUser === user.id}"
-                      :size="15"/>
-              </span>
+                  <Star class="ml-2 text-gray-400 cursor-pointer hover:text-gray-900"
+                        :class="{'font-bold text-gray-900': favoriteUsers === user.id}"
+                        :size="15"/>
+                </span>
               </div>
               <span class="text-sm shrink-0">{{ countByUser(user) }}/5</span>
             </div>
             <div class="flex justify-around px-2 py-3">
               <button v-for="d in weekDays" :key="d"
-                      class="day-pill h-16" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
-                      @click="openSheet(user, d)">
+                      class="day-pill h-16" :class="getDayPillClass(d, presences[`${user.id}-${d}`])">
               <span
                   :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
                   class="text-[10px] font-medium">
@@ -597,9 +626,11 @@ const showAddGuest = (d) => {
 .fade-leave-from {
   opacity: 1;
 }
+
 .fade-leave-active {
   transition: opacity 0.3s ease;
 }
+
 .fade-leave-to {
   opacity: 0;
 }

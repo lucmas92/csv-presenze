@@ -1,15 +1,7 @@
 import db from "#server/db/client";
 import {hashPassword, verifyPassword} from "~/utils/password";
 import jwt from 'jsonwebtoken'
-
-interface User {
-    id: number,
-    username: string,
-    password_hash: string,
-    role: string,
-    is_active: boolean,
-    last_login_at: Date,
-}
+import type { User } from '~/types/User'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)

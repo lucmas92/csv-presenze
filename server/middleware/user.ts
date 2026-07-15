@@ -23,7 +23,6 @@ export default defineEventHandler((event) => {
             // Salviamo i dati dell'utente nel contesto dell'evento Nitro
             event.context.user = users[0]
         } catch (error) {
-            console.error('error',error)
             // Se il token è scaduto o alterato, puliamo il cookie
             deleteCookie(event, 'auth_token')
         }

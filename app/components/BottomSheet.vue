@@ -119,30 +119,31 @@ onUnmounted(() => {
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <button @click="setStatus('office')"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-green-200 active:opacity-70">
-            <div class="w-10 h-10 rounded-xl bg-green-300 flex items-center justify-center">
+            <span
+                class="w-10 h-10 rounded-xl bg-green-300 flex items-center justify-center">
               <Briefcase/>
-            </div>
+            </span>
             <span class="text-xs font-medium text-green-800">Presente</span>
           </button>
           <button @click="setStatus('remote')"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-200 active:opacity-70">
-            <div class="w-10 h-10 rounded-xl bg-gray-300 flex items-center justify-center">
+            <span class="w-10 h-10 rounded-xl bg-gray-300 flex items-center justify-center">
               <Home/>
-            </div>
+            </span>
             <span class="text-xs font-medium text-gray-800">Smart</span>
           </button>
           <button @click="setStatus('holiday')"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-orange-200 active:opacity-70">
-            <div class="w-10 h-10 rounded-xl bg-orange-300 flex items-center justify-center">
+            <span class="w-10 h-10 rounded-xl bg-orange-300 flex items-center justify-center">
               <Plane/>
-            </div>
+            </span>
             <span class="text-xs font-medium text-orange-800">Ferie</span>
           </button>
           <button @click="setStatus(null)"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl border border-slate-100 active:opacity-70">
-            <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
+            <span class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
               <Minus/>
-            </div>
+            </span>
             <span class="text-xs font-medium text-slate-500">Rimuovi</span>
           </button>
         </div>

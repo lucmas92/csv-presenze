@@ -46,7 +46,7 @@ const logout = async () => {
       </nav>
       <div class="mt-auto">
         <div v-if="user" class="font-bold text-slate-400">
-          {{initials(user.name)}}
+          {{ initials(user.name) }}
         </div>
         <div
             @click="logout"
@@ -62,18 +62,25 @@ const logout = async () => {
       <nav v-if="auth.isAuthenticated" class="bottom-nav flex md:hidden">
         <NuxtLink to="/" exact class="text-slate-400 my-2">
           <Calendar1/>
-<!--          <span class="text-xs font-medium text-slate-400">Calendario</span>-->
+          <!--          <span class="text-xs font-medium text-slate-400">Calendario</span>-->
         </NuxtLink>
-        <NuxtLink to="/users" class="text-slate-400 my-2">
+        <NuxtLink
+            v-if="isAdmin" to="/users" class="text-slate-400 my-2">
           <Users/>
-<!--          <span class="text-xs font-medium">Utenti</span>-->
+          <!--          <span class="text-xs font-medium">Utenti</span>-->
         </NuxtLink>
-        <NuxtLink to="/settings" class="text-slate-400 my-2">
+        <NuxtLink
+            v-if="isAdmin" to="/settings" class="text-slate-400 my-2">
           <settings/>
-<!--          <span class="text-xs font-medium">Impostazioni</span>-->
+          <!--          <span class="text-xs font-medium">Impostazioni</span>-->
         </NuxtLink>
-        <NuxtLink @click="logout" class="text-slate-400 my-2 active:scale-90">
-          <LogOut/>
+        <NuxtLink @click="logout" class="text-slate-400 my-2 active:scale-90 ">
+          <div class="flex gap-x-2 items-center ">
+            <div v-if="user" class="font-bold text-slate-400">
+              {{ initials(user.name) }}
+            </div>
+            <LogOut/>
+          </div>
           <!--          <span class="text-xs font-medium">LogOut</span>-->
         </NuxtLink>
       </nav>

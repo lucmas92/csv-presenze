@@ -429,7 +429,6 @@ const showAddGuest = (d) => {
               @refreshFavorites="refreshFavorites"
           />
         </div>
-        {{ selectedUser }} - {{ selectedDate }}
         <BottomSheet v-if="selectedUser"
                      :visible="bottomSheetOpen"
                      :user="selectedUser"

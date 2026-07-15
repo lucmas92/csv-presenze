@@ -1,6 +1,5 @@
 import db from "#server/db/client";
-import {randomUUID} from "node:crypto";
-import {verifyPassword} from "~/utils/password";
+import {hashPassword, verifyPassword} from "~/utils/password";
 import jwt from 'jsonwebtoken'
 
 interface User {
@@ -27,11 +26,9 @@ export default defineEventHandler(async (event) => {
 
     const users: User[] = db.prepare(`
         SELECT *
-        FROM accounts
+        FROM users
         WHERE username = ?
     `).all(username) as User[]
-
-
 
     const user = users[0]
     if (!user) {
@@ -41,7 +38,8 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    const valid = await verifyPassword(password, user.password_hash)
+    const hash_password = await hashPassword(username)
+    const valid = await verifyPassword(password, hash_password)
 
     if (!valid) {
         throw createError({
@@ -54,7 +52,6 @@ export default defineEventHandler(async (event) => {
     const token = jwt.sign(
         {
             userId: user.id,
-            username: user.username
         },
         config.jwtSecret, // La chiave segreta definita nel nuxt.config
         {
@@ -71,9 +68,6 @@ export default defineEventHandler(async (event) => {
     return {
         ok: true,
         token: token,
-        user: {
-            id: user.id,
-            name: user.username,
-        },
+        user: user,
     }
 })

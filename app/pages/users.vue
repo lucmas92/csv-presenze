@@ -60,7 +60,7 @@ const updateUser = async (user) => {
   try {
     const newUser = await $fetch('/api/users', {
       method: 'PUT',
-      body: {id: user.id, name: user.name}
+      body: {id: user.id, name: user.name, username: user.username}
     })
     setTimeout(() => {
       editing.value[user.id] = false
@@ -123,15 +123,27 @@ const closeSheets = () => {
       <div v-for="user in availableUsers" :key="user.id" class="basis-full md:basis-1/2 lg:basis-1/3">
         <div
             class="m-2 flex justify-between bg-white mb-2 rounded-lg p-2">
-          <div class="text-sm font-semibold text-slate-90 truncate">
-            <div v-if="!editing[user.id]" class="border border-transparent p-2">{{ user.name }}</div>
-            <span v-else>
-                <input class="border border-gray-200 p-2"
-                       @keydown.enter="updateUser(user)"
-                       autofocus
-                       type="text"
-                       v-model="user.name">
-              </span>
+          <div class="flex flex-col gap-y-2">
+            <div class="text-sm font-semibold text-slate-90 truncate">
+              <div v-if="!editing[user.id]" class="border border-transparent p-2">{{ user.name }}</div>
+              <span v-else>
+                  <input class="border border-gray-200 p-2"
+                         @keydown.enter="updateUser(user)"
+                         autofocus
+                         type="text"
+                         v-model="user.name">
+                </span>
+            </div>
+            <div class="text-sm font-semibold text-slate-90 truncate">
+              <div v-if="!editing[user.id]" class="border border-transparent p-2">{{ user.username || '-' }}</div>
+              <span v-else>
+                  <input class="border border-gray-200 p-2"
+                         @keydown.enter="updateUser(user)"
+                         autofocus
+                         type="text"
+                         v-model="user.username">
+                </span>
+            </div>
           </div>
           <div class="flex items-center gap-4 mr-3">
             <button v-if="!editing[user.id]" class="action-button" @click="editUser(user)">

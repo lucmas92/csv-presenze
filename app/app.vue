@@ -8,6 +8,8 @@ import {useAuthStore} from "~/stores/auth.ts";
 
 const auth = useAuthStore()
 
+const isAdmin = computed(() => auth.user.role === 'admin')
+
 const logout = async () => {
   await auth.logout().then(() => {
     navigateTo('/login')
@@ -29,11 +31,13 @@ const logout = async () => {
           <Calendar1/>
         </NuxtLink>
         <NuxtLink to="/users"
+                  v-if="isAdmin"
                   class="w-10 h-10 rounded-xl text-slate-400 hover:bg-blue-200 hover:text-blue-500 flex items-center justify-center transition-colors"
                   title="Utenti">
           <Users/>
         </NuxtLink>
         <NuxtLink to="/settings"
+                  v-if="isAdmin"
                   class="w-10 h-10 rounded-xl text-slate-400 hover:bg-blue-200 hover:text-blue-500 flex items-center justify-center transition-colors"
                   title="Impostazioni">
           <Settings/>

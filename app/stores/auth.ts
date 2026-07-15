@@ -1,5 +1,5 @@
 // stores/auth.ts
-import { defineStore } from 'pinia'
+import {defineStore} from 'pinia'
 
 export const useAuthStore = defineStore('auth', () => {
     // useCookie gestisce automaticamente la persistenza sia lato server che client
@@ -14,6 +14,25 @@ export const useAuthStore = defineStore('auth', () => {
     // Getter per verificare se l'utente è autenticato
     const isAuthenticated = computed(() => !!token.value)
 
+    // Recupera i dati dell'utente aggiornati dal server
+    async function fetchUser() {
+        if (!token.value) return
+
+        try {
+            const headers = useRequestHeaders(['cookie']) // Recupera i cookie della richiesta corrente
+
+            const response = await $fetch('/api/auth/me', {
+                headers, // Passa i cookie al backend (funziona sia in SSR che client-side)
+                credentials: 'include'
+            }) as any
+            user.value = response.user
+        } catch (error) {
+            console.error(error)
+            // Se il token non è valido o è scaduto, resettiamo lo store
+            await logout()
+        }
+    }
+
     // Azione di Login connessa alla tua API
     async function login(credentials: { username: string; password: string }) {
         try {
@@ -27,7 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
             user.value = data.user
 
             return true
-        } catch (error:any) {
+        } catch (error: any) {
             console.error('Errore durante il login:', error.data)
             return false
         }
@@ -43,5 +62,5 @@ export const useAuthStore = defineStore('auth', () => {
         })
     }
 
-    return { token, user, isAuthenticated, login, logout }
+    return {token, user, isAuthenticated, login, logout, fetchUser}
 })

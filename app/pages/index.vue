@@ -142,7 +142,7 @@ const availableUsers = computed(() => {
   // rimuovo l'utente preferito se presente
   if (favorites.value) {
     const idsDaRimuovere = new Set(favorites.value.map(item => item.favorite_user_id))
-    filtered = users.value.filter((u) => !idsDaRimuovere.has(u.id))
+    filtered = filtered.filter((u) => !idsDaRimuovere.has(u.id))
   }
 
   if (searchQuery.value === '')

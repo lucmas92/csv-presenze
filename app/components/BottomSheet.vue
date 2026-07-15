@@ -27,6 +27,9 @@ const props = defineProps({
   },
   userNote: {
     type: String,
+  },
+  currentUser: {
+    type: Boolean,
   }
 })
 const localUserNote = ref(props.userNote)
@@ -106,7 +109,7 @@ onUnmounted(() => {
               </p>
             </div>
           </div>
-          <button type="button" @click="showAddNoteModal">
+          <button v-if="currentUser" type="button" @click="showAddNoteModal">
             <NotebookPen :size="24"/>
           </button>
         </div>
@@ -116,7 +119,7 @@ onUnmounted(() => {
           </p>
           <span>{{ userNote }} </span>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+        <div v-if="currentUser" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <button @click="setStatus('office')"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-green-200 active:opacity-70">
             <span

@@ -27,6 +27,14 @@ async function submit() {
         errors.value = error.message
       })
 }
+const handleInputUsername = (event) => {
+  // Convertiamo il valore inserito in minuscolo e aggiorniamo la ref
+  username.value = event.target.value.toLowerCase()
+}
+const handleInputPassword = (event) => {
+  // Convertiamo il valore inserito in minuscolo e aggiorniamo la ref
+  password.value = event.target.value.toLowerCase()
+}
 </script>
 
 <template>
@@ -37,11 +45,13 @@ async function submit() {
         <div class="flex flex-col gap-4">
           <input class="p-4 text-base"
                  @keydown.enter="submit"
+                 @input="handleInputUsername"
                  type="text" name="username" placeholder="Username" v-model="username">
           <span class="flex items-center gap-3">
             <input class="p-4 text-base flex-1"
                    autocomplete="off"
                    @keydown.enter="submit"
+                   @input="handleInputPassword"
                    :type="showPassword ? 'text' : 'password'" name="password" placeholder="Password" v-model="password">
             <Eye class="cursor-pointer text-white" :size="18" v-if="!showPassword" @click="showPassword = !showPassword"/>
             <EyeOff class="cursor-pointer text-white" :size="18"  v-else @click="showPassword = !showPassword"/>

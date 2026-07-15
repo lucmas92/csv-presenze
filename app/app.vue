@@ -7,6 +7,7 @@ import {
 import {useAuthStore} from "~/stores/auth.ts";
 
 const auth = useAuthStore()
+const user = computed(() => auth.user)
 
 const isAdmin = computed(() => auth.user.role === 'admin')
 
@@ -44,6 +45,9 @@ const logout = async () => {
         </NuxtLink>
       </nav>
       <div class="mt-auto">
+        <div v-if="user" class="font-bold text-slate-400">
+          {{initials(user.name)}}
+        </div>
         <div
             @click="logout"
             class="w-8 h-8 mb-2 rounded-full text-slate-400 active:scale-90">

@@ -339,7 +339,7 @@ const showAddGuest = (d) => {
               <ChevronLeft :size="18"/>
             </button>
             <span
-                class="text-xs md:text-sm font-medium text-slate-700 px-1 md:px-2 min-w-[100px] md:min-w-[160px] text-center"
+                class="text-xs md:text-sm font-medium text-slate-700 px-1 md:px-2 min-w-[80px] md:min-w-[160px] text-center"
                 id="week-label">
               {{ from }} - {{ to }}
             </span>
@@ -351,7 +351,7 @@ const showAddGuest = (d) => {
 
           <!-- Oggi (desktop only) -->
           <button id="today-btn" @click="goToCurrentWeek"
-                  class="inline-flex px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-800 transition-colors">
+                  class="inline-flex px-3 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-800 transition-colors">
             Oggi
           </button>
         </div>
@@ -362,7 +362,7 @@ const showAddGuest = (d) => {
           <div class="relative" v-for="d in weekDays" :key="d">
             <button type="button" @click="showAddGuest(d)"
                     :class="classDayStripButton(d)"
-                    class="flex flex-col items-center w-10 rounded-xl border p-2 border-gray-150">
+                    class="flex flex-col items-center w-10 rounded-xl border p-2 px-6 border-gray-150">
               <span class="text-[9px] font-medium uppercase" style="line-height: .8rem">{{ shortDayName(d) }}</span>
               <span class="text-sm font-semibold" style="line-height: .8rem">{{ dayNum(d) }}</span>
               <span class="text-[9px] font-medium" style="line-height: .8rem">{{ dayMonth(d) }}</span>

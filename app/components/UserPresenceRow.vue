@@ -28,6 +28,30 @@ const props = defineProps({
   }
 })
 
+const isOnline = computed(() => {
+  if (props.currentUser)
+    return true
+
+  const lastLoginAt = props.user.last_login_at
+  if (!lastLoginAt) return false
+
+  const now = Date.now() // Timestamp attuale in millisecondi
+
+  // Convertiamo il valore in millisecondi
+  let lastLoginTime = new Date(lastLoginAt).getTime()
+
+  // Se il tuo database SQLite salva in secondi (timestamp Unix a 10 cifre) invece che millisecondi,
+  // moltiplichiamo per 1000 per allinearlo a Javascript
+  if (typeof lastLoginAt === 'number' && lastLoginAt < 10000000000) {
+    lastLoginTime = lastLoginAt * 1000
+  }
+
+  const dueMinutiInMs = 2 * 60 * 1000
+
+  // Ritorna true se la differenza è inferiore a 2 minuti
+  return (now - lastLoginTime) < dueMinutiInMs
+})
+
 const presences = computed(() => {
   const map = []
 
@@ -118,14 +142,16 @@ const setFavorite = async (favorite) => {
   <div class="user-card bg-white mb-2 shadow-sm"
        :class="userClass">
     <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
-      <div class="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold shrink-0">
+      <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold"
+           :class="{'bg-green-400': isOnline}">
         {{ initials(user.name) }}
       </div>
       <div class="flex-1 flex items-center min-w-0">
         <p class="text-sm font-semibold text-slate-900 truncate">{{ user.name }}</p>
         <span v-if="!currentUser" @click="toggleFavorite(user)">
-                  <Star v-if="isFavorite" class="ml-2 cursor-pointer hover:text-green-600 font-bold text-green-400 fill-current"
-                         :size="15"/>
+                  <Star v-if="isFavorite"
+                        class="ml-2 cursor-pointer hover:text-green-600 font-bold text-green-400 fill-current"
+                        :size="15"/>
                   <Star v-else class="ml-2 text-gray-400 cursor-pointer hover:text-green-600"
                         :size="15"/>
                 </span>
@@ -134,7 +160,8 @@ const setFavorite = async (favorite) => {
     </div>
     <div class="flex justify-around px-2 py-3">
       <button v-for="d in weekDays" :key="d"
-              class="day-pill h-16 md:min-w-24 lg:min-w-40 xl:min-w-52" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
+              class="day-pill h-16 md:min-w-24 lg:min-w-40 xl:min-w-52"
+              :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
               @click="openSheet(d)">
           <span
               :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"

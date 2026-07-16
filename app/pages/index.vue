@@ -282,6 +282,15 @@ onBeforeMount(() => {
   }, 200)
 })
 
+// Opzionale: aggiorna la lista automaticamente ogni 30 secondi per vedere chi si connette/disconnette
+onMounted(() => {
+  const interval = setInterval(() => {
+    refreshUsers()
+  }, 10000)
+
+  onUnmounted(() => clearInterval(interval))
+})
+
 
 const onDeleteGuest = async (guest_name, date) => {
   // 🧹 DELETE

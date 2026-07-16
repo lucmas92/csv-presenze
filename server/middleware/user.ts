@@ -22,6 +22,11 @@ export default defineEventHandler((event) => {
 
             // Salviamo i dati dell'utente nel contesto dell'evento Nitro
             event.context.user = users[0]
+
+            // Aggiorna il "last_seen" nel DB a ogni chiamata API dell'utente
+            // Usiamo una query non bloccante (senza await se non è critica) per non rallentare l'app
+            db.prepare("UPDATE users SET last_login_at = datetime('now', 'localtime') WHERE id = ?").run(decoded.userId)
+
         } catch (error) {
             // Se il token è scaduto o alterato, puliamo il cookie
             deleteCookie(event, 'auth_token')

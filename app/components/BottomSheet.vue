@@ -97,19 +97,18 @@ onUnmounted(() => {
           <span>-</span>
           <span v-html="formatDate2(date)"/>
         </p>
-        <div class="flex justify-between">
-
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-semibold shrink-0"
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border border-gray-300"
                  id="sheet-avatar">{{ initials(user.name) }}
             </div>
             <div>
-              <p class="font-semibold text-sm" id="sheet-name">
+              <p class="font-semibold text-lg" id="sheet-name">
                 {{ user.name }}
               </p>
             </div>
           </div>
-          <button v-if="currentUser" type="button" @click="showAddNoteModal">
+          <button class="flex items-center gap-3" v-if="currentUser" type="button" @click="showAddNoteModal">
             <NotebookPen :size="24"/>
           </button>
         </div>

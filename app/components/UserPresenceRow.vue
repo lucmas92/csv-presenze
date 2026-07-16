@@ -142,12 +142,12 @@ const setFavorite = async (favorite) => {
   <div class="user-card bg-white mb-2 shadow-sm"
        :class="userClass">
     <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
-      <div class="w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold"
-           :class="{'bg-green-400': isOnline}">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border border-gray-300"
+           :class="{'bg-green-300': isOnline}">
         {{ initials(user.name) }}
       </div>
       <div class="flex-1 flex items-center min-w-0">
-        <p class="text-sm font-semibold text-slate-900 truncate">{{ user.name }}</p>
+        <p class="text-lg font-semibold text-slate-900 truncate">{{ user.name }}</p>
         <span v-if="!currentUser" @click="toggleFavorite(user)">
                   <Star v-if="isFavorite"
                         class="ml-2 cursor-pointer hover:text-green-600 font-bold text-green-400 fill-current"
@@ -156,11 +156,11 @@ const setFavorite = async (favorite) => {
                         :size="15"/>
                 </span>
       </div>
-      <span class="text-sm shrink-0">{{ countByUser(user) }}/5</span>
+      <span class="text-sm shrink-0 bg-gray-100 px-3 py-1 rounded-full ">Presenze {{ countByUser(user) }}/5</span>
     </div>
     <div class="flex justify-around px-2 py-3">
       <button v-for="d in weekDays" :key="d"
-              class="day-pill h-16 md:min-w-24 lg:min-w-40 xl:min-w-52"
+              class="day-pill h-16 md:min-w-24 lg:min-w-40 xl:min-w-52 border border-gray-150 rounded-xl"
               :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
               @click="openSheet(d)">
           <span
@@ -191,12 +191,10 @@ const setFavorite = async (favorite) => {
   flex-direction: column;
   align-items: center;
   width: 44px;
-  border-radius: 12px;
   padding: 6px 0;
   cursor: pointer;
   transition: background .12s, transform .1s;
   position: relative;
-  border: none;
 }
 
 .day-pill.today-pill {

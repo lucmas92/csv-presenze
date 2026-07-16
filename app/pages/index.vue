@@ -5,7 +5,8 @@ import {
   Plane,
   ChevronLeft,
   ChevronRight,
-  Users
+  Users,
+  Search,
 } from 'lucide-vue-next'
 import Widget from '~/components/Widget.vue'
 import {getCurrentWeek} from "~/utils/dates.ts";
@@ -371,7 +372,7 @@ const showAddGuest = (d) => {
           <div class="relative" v-for="d in weekDays" :key="d">
             <button type="button" @click="showAddGuest(d)"
                     :class="classDayStripButton(d)"
-                    class="flex flex-col items-center w-10 rounded-xl border p-2 px-6 border-gray-150">
+                    class="flex flex-col items-center md:min-w-24 lg:min-w-40 xl:min-w-52 rounded-xl border p-2 px-6 border-gray-150">
               <span class="text-[9px] font-medium uppercase" style="line-height: .8rem">{{ shortDayName(d) }}</span>
               <span class="text-sm font-semibold" style="line-height: .8rem">{{ dayNum(d) }}</span>
               <span class="text-[9px] font-medium" style="line-height: .8rem">{{ dayMonth(d) }}</span>
@@ -384,20 +385,26 @@ const showAddGuest = (d) => {
     <Transition name="fade">
       <div class="w-100 mx-1 md:mx-3" v-if="!loading">
         <div id="dashboard" class="grid m-2 grid-cols-2 lg:grid-cols-4 gap-3 items-center justify-center py-1">
-          <Widget class="bg-green-200" :count="countByStatus['office'] ?? 0" description="Presenti">
-            <Briefcase :size="14"/>
+          <Widget class="bg-green-100" :count="countByStatus['office'] ?? 0" description="Presenti">
+            <Briefcase :size="20"/>
           </Widget>
-          <Widget class="bg-blue-200" :count="countOspiti" description="Ospiti">
-            <Users :size="14"/>
+          <Widget class="bg-blue-100" :count="countOspiti" description="Ospiti">
+            <Users :size="20"/>
           </Widget>
-          <Widget class="bg-gray-200" :count="countByStatus['remote'] ?? 0" description="Da casa">
-            <Home :size="14"/>
+          <Widget class="bg-gray-100" :count="countByStatus['remote'] ?? 0" description="Smart">
+            <Home :size="20"/>
           </Widget>
-          <Widget class="bg-orange-200" :count="countByStatus['holiday'] ?? 0" description="In ferie">
-            <Plane :size="14"/>
+          <Widget class="bg-orange-100" :count="countByStatus['holiday'] ?? 0" description="Ferie">
+            <Plane :size="20"/>
           </Widget>
         </div>
-        <input type="text" v-model="searchQuery" class="px-7 py-2 w-full mb-2 rounded-xl" placeholder="Ricerca...">
+        <div class="relative mb-3">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+              <Search class="text-gray-400"/>
+            </span>
+          <input type="text" v-model="searchQuery" placeholder="Cerca collaboratore..."
+                 class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition placeholder-slate-400">
+        </div>
         <div id="user-list" class="">
 
           <UserPresenceRow

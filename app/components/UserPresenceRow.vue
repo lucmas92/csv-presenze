@@ -142,10 +142,14 @@ const setFavorite = async (favorite) => {
   <div class="user-card bg-white mb-2 shadow-sm"
        :class="userClass">
     <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
-      <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border border-gray-300"
-           :class="{'bg-green-300': isOnline}">
-        {{ initials(user.name) }}
-      </div>
+      <span class="relative flex size-3 w-10 h-10 ">
+        <span class="absolute  inline-flex w-10 h-10 animate-ping rounded-full opacity-75" :class="{'bg-green-300': isOnline}">
+        </span>
+        <span class="relative inline-flex items-center w-10 h-10 size-3 rounded-full border border-gray-300" :class="{'bg-green-400': isOnline}">
+          <span class="mx-auto">{{ initials(user.name) }}</span>
+        </span>
+
+      </span>
       <div class="flex-1 flex items-center min-w-0">
         <p class="text-lg font-semibold text-slate-900 truncate">{{ user.name }}</p>
         <span v-if="!currentUser" @click="toggleFavorite(user)">

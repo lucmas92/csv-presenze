@@ -134,7 +134,7 @@ const setFavorite = async (favorite) => {
     </div>
     <div class="flex justify-around px-2 py-3">
       <button v-for="d in weekDays" :key="d"
-              class="day-pill h-16" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
+              class="day-pill h-16 md:min-w-24 lg:min-w-40 xl:min-w-52" :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
               @click="openSheet(d)">
           <span
               :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"

@@ -15,14 +15,31 @@ const bottomSheetOpen = ref(false)
 
 const auth = useAuthStore()
 const authUser = computed(() => auth.user)
+const defaultPasswords = ref(new Map())
 
 const {notifyError, notifySuccess} = useNotification();
+
+const isDefaultPassword = async (user) => {
+  return await verifyPassword(user.username, user.password_hash)
+}
 
 const {data: users, refresh: refreshUsers} = await useFetch('/api/users', {
   query: {
     withGuests: 1
   }
 })
+
+const fetchDefaultPassword = () => {
+  users.value.forEach(async (u) => {
+    const def = await isDefaultPassword(u)
+    defaultPasswords.value.set(u.id, {default: def})
+  })
+}
+
+onMounted(() => {
+    fetchDefaultPassword()
+})
+
 
 const resetUserPassword = async (user) => {
   loading.value = true
@@ -38,6 +55,7 @@ const resetUserPassword = async (user) => {
           notifyError(error.data.message, 'Impossibile resettare la password')
         })
     await refreshUsers()
+    fetchDefaultPassword()
 
     setTimeout(async () => {
       editing.value[user.id] = false
@@ -213,7 +231,9 @@ const closeSheets = () => {
             </button>
             <button v-if="authUser.role === 'admin'" class="action-button" title="Reset password"
                     @click="resetUserPassword(user)">
-              <KeyRound/>
+              <KeyRound class="text-red-800/50 fill-current"
+                        v-if="defaultPasswords.has(user.id) && defaultPasswords.get(user.id)['default']"/>
+              <KeyRound v-else/>
             </button>
             <button class="action-button" title="Elimina utente"
                     @click="deleteUser(user)">

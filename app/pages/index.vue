@@ -275,7 +275,7 @@ const onSaveGuest = async (guest_name, date) => {
     notifyError(error.data.message, 'Impossibile aggiungere l\'ospite')
   })
       .then(async () => {
-        notifySuccess('È stata aggiuntoun ospite.', 'Modifica salvata');
+        notifySuccess('È stata aggiunto un ospite.', 'Modifica salvata');
       })
 
   await refreshGuests()

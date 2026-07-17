@@ -54,12 +54,12 @@ const logout = async () => {
           notification.type === 'error' ? 'bg-rose-500' : 'bg-emerald-500'
         ]">
           <!-- Se usi nuxt-lucide o icone standard, qui inserisci l'icona adatta -->
-          <TriangleAlert v-if="notification.type === 'error'"/>
-          <CircleCheck v-else/>
+          <TriangleAlert :size="34" v-if="notification.type === 'error'"/>
+          <CircleCheck :size="34" v-else/>
         </div>
 
         <!-- Contenuto del Testo -->
-        <div class="text-xs space-y-0.5 flex-1">
+        <div class="text-sm space-y-0.5 flex-1">
           <span :class="[
             'font-bold block',
             notification.type === 'error' ? 'text-rose-950' : 'text-emerald-950'

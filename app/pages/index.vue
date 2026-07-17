@@ -319,7 +319,20 @@ const onDeleteGuest = async (guest_name, date) => {
   await refreshGuests()
 }
 
+const count = async (date) => {
+  return await $fetch('/api/presencesCount', {
+    query: {date: date}
+  })
+}
+
 const onSetStatus = async (userId, date, status) => {
+
+  const totalCurrentPresences = await count(date)
+
+  if (totalCurrentPresences.count >= 10){
+    onSaveNote(userId, date, `Capienza massima raggiunta! Tu sei il #${totalCurrentPresences.count+1}`)
+    notifyError("Potresti dover utilizzare una postazione di emergenza o concordare la presenza con il tuo team.", "Capienza massima raggiunta")
+  }
 
   const key = `${userId}-${date}`
 

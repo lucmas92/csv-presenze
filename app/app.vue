@@ -14,7 +14,7 @@ import {useAuthStore} from "~/stores/auth.ts";
 
 const auth = useAuthStore()
 const user = computed(() => auth.user)
-const timeout = ref<any>(null)
+const timeout = ref(null)
 
 const {notification, clearNotification} = useNotification();
 // Auto-chiusura della notifica dopo 5 secondi

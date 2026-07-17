@@ -46,7 +46,8 @@ const logout = async () => {
         leave-to-class="opacity-0"
     >
       <div v-if="notification.show"
-           class="fixed top-4 right-4 z-50 max-w-sm w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-4 flex items-start gap-3">
+           :class="{'bg-red-200': notification.type === 'error', 'bg-white': notification.type !== 'error'}"
+           class="fixed top-4 right-4 z-50 max-w-sm w-full rounded-2xl shadow-xl border border-slate-100 p-4 flex items-start gap-3">
         <!-- Icona Dinamica in base al tipo (Errore o Successo) -->
         <div :class="[
           'p-1 text-white rounded-md shrink-0',
@@ -63,7 +64,7 @@ const logout = async () => {
             'font-bold block',
             notification.type === 'error' ? 'text-rose-950' : 'text-emerald-950'
           ]">{{ notification.title }}</span>
-          <span class="block text-slate-600">{{ notification.message }}</span>
+          <span class="block" :class="{'text-slate-600': notification.type !== 'error', 'text-rose-800': notification.type === 'error'}">{{ notification.message }}</span>
         </div>
 
         <!-- Pulsante di Chiusura -->

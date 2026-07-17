@@ -176,7 +176,7 @@ const setFavorite = async (favorite) => {
               {{ dayNum(d) }}
           </span>
         <span>
-            <StickyNote v-if="hasNote(d)" class="absolute top-0 -right-4 text-blue-800" :size="12"/>
+            <StickyNote v-if="hasNote(d)" class="absolute top-0 md:top-1 -right-4 md:right-1 text-blue-800" :size="12"/>
             <Briefcase class="text-green-500" v-if="presences[`${user.id}-${d}`] === 'office'" :size="18"/>
             <Home class="text-gray-500" v-else-if="presences[`${user.id}-${d}`] === 'remote'" :size="18"/>
             <Plane class="text-orange-500" v-else-if="presences[`${user.id}-${d}`] === 'holiday'" :size="18"/>

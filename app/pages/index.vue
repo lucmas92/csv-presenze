@@ -141,6 +141,11 @@ const {data: presencesData, refresh: refreshPresences} = await useFetch('/api/pr
 const availableUsers = computed(() => {
   if (!users.value) return [{name: '', id: 0}]
 
+  // EASTER EGG!
+  if (searchQuery.value === 'ferie' || searchQuery.value === 'spiaggia') {
+    return [{ id: 'egg', name: 'Il tuo lettino a Ibiza 🌴', role: 'guest' }]
+  }
+
   let filtered = users.value.filter((u) => {
     return u.id !== user.value.id
   })
@@ -435,7 +440,7 @@ const showAddGuest = (d) => {
           <input type="text" v-model="searchQuery" placeholder="Cerca collaboratore..."
                  class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition placeholder-slate-400">
         </div>
-        <div id="user-list" class="">
+        <div id="user-list">
 
           <UserPresenceRow
               :presencesData="presencesData"

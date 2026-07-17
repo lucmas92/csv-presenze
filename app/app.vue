@@ -8,7 +8,7 @@ import {
   ChartSpline,
   Settings,
   TriangleAlert,
-    CircleCheck
+  CircleCheck
 } from 'lucide-vue-next'
 import {useAuthStore} from "~/stores/auth.ts";
 
@@ -20,7 +20,7 @@ const {notification, clearNotification} = useNotification();
 // Auto-chiusura della notifica dopo 5 secondi
 watch(() => notification.value.show, (newVal) => {
   if (newVal) {
-    if (timeout.value){
+    if (timeout.value) {
       clearTimeout(timeout)
     }
     timeout.value = setTimeout(() => {
@@ -112,7 +112,7 @@ const logout = async () => {
           <Settings/>
         </NuxtLink>
       </nav>
-      <div class="mt-auto">
+      <div class="mt-auto flex flex-col items-center">
         <div v-if="user" class="font-bold text-slate-400">
           {{ initials(user.name) }}
         </div>
@@ -147,7 +147,7 @@ const logout = async () => {
           <!--          <span class="text-xs font-medium">Impostazioni</span>-->
         </NuxtLink>
         <NuxtLink @click="logout" class="text-slate-400 my-2 active:scale-90 ">
-          <div class="flex gap-x-2 items-center ">
+          <div class="flex gap-x-2">
             <div v-if="user" class="font-bold text-slate-400">
               {{ initials(user.name) }}
             </div>

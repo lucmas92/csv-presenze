@@ -45,16 +45,18 @@ const setStatus = (status: string | null) => {
   emit("setStatus", props.user.id, props.date, status)
 }
 
-const saveNote = () => {
-  emit("saveNote", props.user.id, props.date, localUserNote.value)
-  setTimeout(() => {
-    modal.value.close()
-  }, 100)
+const saveNote = (isDelete = false) => {
+  if (isDelete || (localUserNote.value && localUserNote.value.length > 0)) {
+    emit("saveNote", props.user.id, props.date, localUserNote.value)
+    setTimeout(() => {
+      modal.value.close()
+    }, 100)
+  }
 }
 
 const deleteNote = () => {
   localUserNote.value = ''
-  saveNote()
+  saveNote(true)
 }
 
 const abort = () => {
@@ -99,8 +101,9 @@ onUnmounted(() => {
         </p>
         <div class="flex justify-between items-center mb-3">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border border-gray-300"
-                 id="sheet-avatar">{{ initials(user.name) }}
+            <div
+                class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold border border-gray-300"
+                id="sheet-avatar">{{ initials(user.name) }}
             </div>
             <div>
               <p class="font-semibold text-lg" id="sheet-name">
@@ -162,11 +165,16 @@ onUnmounted(() => {
         Aggiungi nota per
         <span class="font-bold">{{ date }}</span></h2>
       <textarea
-          v-model="localUserNote" class="w-full border rounded-lg p-2 text-sm"/>
+          v-model.trim="localUserNote" class="w-full border rounded-lg p-2 text-sm"/>
       <div class="flex justify-end gap-2 mt-4">
-        <button type="button" @click="modal.close()" class="px-4 py-2 text-sm rounded-2xl border border-gray-200">Chiudi</button>
-        <button type="button" @click="deleteNote()" class="px-4 py-2 text-sm rounded-2xl text-red-500 bg-red-200">Elimina</button>
-        <button type="button" @click="saveNote()" class="px-4 py-2 text-sm rounded-2xl bg-emerald-600 text-white">Salva
+        <button type="button" @click="modal.close()" class="px-4 py-2 text-sm rounded-2xl border border-gray-200">
+          Chiudi
+        </button>
+        <button type="button" @click="deleteNote()" :disabled="!localUserNote || localUserNote.length === 0"
+                class="px-4 py-2 text-sm rounded-2xl text-red-500 bg-red-200 disabled:bg-gray-200">Elimina
+        </button>
+        <button type="button" @click="saveNote()" :disabled="!localUserNote || localUserNote.length === 0"
+                class="px-4 py-2 text-sm rounded-2xl bg-emerald-600 text-white disabled:bg-gray-200">Salva
         </button>
       </div>
     </dialog>

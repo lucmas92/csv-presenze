@@ -47,11 +47,11 @@ definePageMeta({
         <!-- Pulsanti di Navigazione -->
         <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
           <!-- Torna alla Dashboard -->
-          <a href="/"
+          <NuxtLink to="/"
              class="w-full sm:flex-1 inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-sm transition">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
             Torna alla Dashboard
-          </a>
+          </NuxtLink>
         </div>
       </div>
     </div>

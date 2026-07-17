@@ -1,4 +1,5 @@
 import db from '../db/client'
+import {hashPassword} from "~/utils/password";
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
@@ -20,12 +21,16 @@ export default defineEventHandler(async (event) => {
         })
     }
 
+    const role = 'user'
+
+    const password_hash = await hashPassword(username)
+
     const stmt = db.prepare(`
-        INSERT INTO users (name, username)
-        VALUES (?, ?)
+        INSERT INTO users (name, username, password_hash, role)
+        VALUES (?, ?, ?, ?)
     `)
 
-    const result = stmt.run(name, username)
+    const result = stmt.run(name, username, password_hash, role)
 
     return {
         id: result.lastInsertRowid,

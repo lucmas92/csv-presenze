@@ -6,11 +6,24 @@ import {
   LayoutGrid,
   LogOut,
   ChartSpline,
+  Settings,
+  TriangleAlert,
+    CircleCheck
 } from 'lucide-vue-next'
 import {useAuthStore} from "~/stores/auth.ts";
 
 const auth = useAuthStore()
 const user = computed(() => auth.user)
+
+const {notification, clearNotification} = useNotification();
+// Auto-chiusura della notifica dopo 5 secondi
+watch(() => notification.value.show, (newVal) => {
+  if (newVal) {
+    setTimeout(() => {
+      clearNotification();
+    }, 5000);
+  }
+});
 
 const isAdmin = computed(() => auth.user.role === 'admin')
 
@@ -22,6 +35,45 @@ const logout = async () => {
 </script>
 <template>
   <div class="flex min-h-screen md:h-screen md:overflow-hidden">
+
+    <!-- BANNER NOTIFICA CENTRALE -->
+    <Transition
+        enter-active-class="transform ease-out duration-300 transition"
+        enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+        enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+        leave-active-class="transition ease-in duration-100"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+    >
+      <div v-if="notification.show"
+           class="fixed top-4 right-4 z-50 max-w-sm w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-4 flex items-start gap-3">
+        <!-- Icona Dinamica in base al tipo (Errore o Successo) -->
+        <div :class="[
+          'p-1 text-white rounded-md shrink-0',
+          notification.type === 'error' ? 'bg-rose-500' : 'bg-emerald-500'
+        ]">
+          <!-- Se usi nuxt-lucide o icone standard, qui inserisci l'icona adatta -->
+          <TriangleAlert v-if="notification.type === 'error'"/>
+          <CircleCheck v-else/>
+        </div>
+
+        <!-- Contenuto del Testo -->
+        <div class="text-xs space-y-0.5 flex-1">
+          <span :class="[
+            'font-bold block',
+            notification.type === 'error' ? 'text-rose-950' : 'text-emerald-950'
+          ]">{{ notification.title }}</span>
+          <span class="block text-slate-600">{{ notification.message }}</span>
+        </div>
+
+        <!-- Pulsante di Chiusura -->
+        <button @click="clearNotification" class="text-slate-400 hover:text-slate-600 transition p-1">
+          <span>✕</span>
+        </button>
+      </div>
+    </Transition>
+
+
     <!-- ── SIDEBAR (hidden mobile, visible desktop) ── -->
     <aside v-if="auth.isAuthenticated"
            class="hidden md:flex w-16 bg-white border-r border-slate-100 flex-col items-center py-5 gap-6 shrink-0">
@@ -45,6 +97,11 @@ const logout = async () => {
                   class="w-10 h-10 rounded-xl text-slate-400 hover:bg-blue-200 hover:text-blue-500 flex items-center justify-center transition-colors"
                   title="Statistiche">
           <ChartSpline/>
+        </NuxtLink>
+        <NuxtLink to="/settings"
+                  class="w-10 h-10 rounded-xl text-slate-400 hover:bg-blue-200 hover:text-blue-500 flex items-center justify-center transition-colors"
+                  title="Impostazioni">
+          <Settings/>
         </NuxtLink>
       </nav>
       <div class="mt-auto">

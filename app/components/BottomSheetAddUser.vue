@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {ref} from "vue";
 
-const sheet = ref()
-const userName = ref<string>('')
+const name = ref<string>('')
+const username = ref<string>('')
 const emit = defineEmits<{
-  (e: 'saveUser', userName: string): void
+  (e: 'saveUser', name: string, username: string): void
   (e: 'abort'): void
 }>()
 
@@ -15,14 +15,18 @@ const props = defineProps({
   },
 })
 
-watch(props, (newVal, oldVal) => {
-  if (props.visible)
-    userName.value = ''
+watch(props, () => {
+  if (props.visible) {
+    name.value = ''
+    username.value = ''
+  }
 })
 
 const saveUser = () => {
-  emit('saveUser', userName.value)
-  emit('abort')
+  if (name.value && username.value) {
+    emit('saveUser', name.value, username.value)
+    emit('abort')
+  }
 }
 
 const getClass = () => {
@@ -52,12 +56,20 @@ onUnmounted(() => {
       <div class="sheet-handle"></div>
       <div class="px-5 pt-4 pb-3">
         <p class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">Aggiunta utente</p>
+        <div class="flex justify-between mb-3">
+          <input
+              class="w-full rounded-xl px-4 py-2 focus-visible:outline-none border border-gray-200"
+              autofocus
+              v-model="name"
+              placeholder="Nome utente..."
+              @keyup.enter="saveUser()"
+          />
+        </div>
         <div class="flex justify-between">
           <input
-              class="w-full rounded-2xl px-4 py-2 focus-visible:outline-none border border-gray-200"
-              autofocus
-              v-model="userName"
-              placeholder="Nome utente..."
+              class="w-full rounded-xl px-4 py-2 focus-visible:outline-none border border-gray-200"
+              v-model="username"
+              placeholder="Username..."
               @keyup.enter="saveUser()"
           />
         </div>

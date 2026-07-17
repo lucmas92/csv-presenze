@@ -1,7 +1,9 @@
-import db from '../db/client'
+import db from '../../db/client'
+import {hashPassword} from "~/utils/password";
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
+
     const currentUser = event.context.user
     if (currentUser.role !== 'admin')
         throw createError({
@@ -10,19 +12,17 @@ export default defineEventHandler(async (event) => {
         })
 
     const id = body?.id
+    const username = body?.username
 
-    if (!id) {
-        throw createError({
-            statusCode: 400,
-            statusMessage: 'Id obbligatorio'
-        })
-    }
+    const newPassword = await hashPassword(username)
 
     const stmt = db.prepare(`
-        DELETE FROM users where id = ?
+        UPDATE users
+        set password_hash = ?
+        where id = ?
     `)
 
-    const result = stmt.run(id)
+    const result = stmt.run(newPassword, id)
 
-    return { success: true }
+    return {success: true}
 })

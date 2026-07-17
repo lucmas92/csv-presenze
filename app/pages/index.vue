@@ -28,7 +28,8 @@ const loading = ref(false)
 const bottomSheetOpen = ref(false)
 const bottomSheetAddGuestOpen = ref(false)
 const today = ref(new Date().toLocaleDateString('sv-SE'))
-const addGuestError = ref("")
+
+const {notifyError, notifySuccess} = useNotification();
 
 const auth = useAuthStore()
 const user = computed(() => auth.user)
@@ -216,6 +217,13 @@ const onSaveNote = async (userId, date, note) => {
       content: note
     }
   })
+      .then(async () => {
+        const message = note.length > 0 ? 'È stata salvata la nota' : 'Nota eliminata'
+        notifySuccess(message, 'Modifica salvata');
+      })
+      .catch(async (error) => {
+        notifyError(error.data.message, 'Impossibile salvare la nota123')
+      })
 
   notesDraft.value[key] = note
 
@@ -260,14 +268,11 @@ const closeGuestSheets = () => {
 }
 
 const onSaveGuest = async (guest_name, date) => {
-  addGuestError.value = ""
-
-  // 💾 UPSERT
   await $fetch('/api/guests', {
     method: 'POST',
     body: {guest_name: guest_name, date}
-  }).catch((err) => {
-    addGuestError.value = err.data.message
+  }).catch((error) => {
+    notifyError(error.data.message, 'Impossibile aggiungere l\'ospite')
   })
 
   await refreshGuests()
@@ -302,6 +307,12 @@ const onDeleteGuest = async (guest_name, date) => {
     method: 'DELETE',
     body: {guest_name: guest_name, date: date}
   })
+      .then(async () => {
+        notifySuccess('Ospite eliminato.', 'Modifica salvata');
+      })
+      .catch(async (error) => {
+        notifyError(error.data.message, 'Impossibile eliminare l\'ospite')
+      })
   await refreshGuests()
 }
 
@@ -462,7 +473,6 @@ const showAddGuest = (d) => {
                              :guests="guestsPerDay.get(selectedDate) || []"
                              :date="selectedDate"
                              :visible="bottomSheetAddGuestOpen"
-                             :errors="addGuestError"
                              @saveGuest="onSaveGuest"
                              @deleteGuest="onDeleteGuest"
                              onDeleteGuest="onDeleteGuest"

@@ -47,7 +47,6 @@ export const useAuthStore = defineStore('auth', () => {
 
             return true
         } catch (error: any) {
-            console.error('Errore durante il login:', error.data)
             return false
         }
     }

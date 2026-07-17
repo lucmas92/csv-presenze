@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
         WHERE username = ?
     `).all(username) as User[]
 
-    const user = users[0]
+    const user = users[0] as User
     if (!user) {
         throw createError({
             statusCode: 401,
@@ -30,8 +30,7 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    const hash_password = await hashPassword(username)
-    const valid = await verifyPassword(password, hash_password)
+    const valid = await verifyPassword(password, user.password_hash)
 
     if (!valid) {
         throw createError({

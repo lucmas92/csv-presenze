@@ -18,15 +18,10 @@ const props = defineProps({
   visible: {
     type: Boolean,
     default: false
-  },
-  errors: {
-    type: String,
   }
 })
 
-const sheet = ref()
 const guestName = ref<string>('')
-const modal = ref()
 const selectedDate = ref(props.date)
 const emit = defineEmits<{
   (e: 'saveGuest', guestName: string, date: string): void
@@ -82,10 +77,6 @@ onUnmounted(() => {
           <span>-</span>
           <span v-html="formatDate2(date)"/>
         </p>
-        <span class="text-red-400">
-            {{ errors }}
-          </span>
-
         <div class="flex justify-between gap-2">
           <input
               class="w-full rounded-2xl px-4 py-2 focus-visible:outline-none border border-gray-200"

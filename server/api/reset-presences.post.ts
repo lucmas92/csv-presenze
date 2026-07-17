@@ -1,6 +1,14 @@
 import db from '../db/client'
 
 export default defineEventHandler(async (event) => {
+
+    const currentUser = event.context.user
+    if (currentUser.role !== 'admin')
+        throw createError({
+            statusCode: 403,
+            statusMessage: 'Non hai il permesso'
+        })
+
     db.prepare(`
         DELETE
         FROM presences

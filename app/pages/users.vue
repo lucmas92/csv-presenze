@@ -1,33 +1,64 @@
 <script setup>
+import {useAuthStore} from "~/stores/auth.ts";
+
 definePageMeta({
   protected: true,
 })
-import {Save, Trash, Pencil} from 'lucide-vue-next'
+import {KeyRound, Save, Trash, Pencil} from 'lucide-vue-next'
 import Header from "~/components/Header.vue";
 import BottomSheetAddUser from "~/components/BottomSheetAddUser.vue";
 
 const searchQuery = ref('')
 const loading = ref(false)
 const editing = ref([])
-const users = ref([])
 const bottomSheetOpen = ref(false)
 
-const fetchUsers = async () => {
-  users.value = await $fetch('/api/users')
+const auth = useAuthStore()
+const authUser = computed(() => auth.user)
+
+const {notifyError, notifySuccess} = useNotification();
+
+const {data: users, refresh: refreshUsers} = await useFetch('/api/users')
+
+const resetUserPassword = async (user) => {
+  loading.value = true
+  try {
+    await $fetch('/api/user/resetPassword', {
+      method: 'PUT',
+      body: {id: user.id, username: user.username}
+    })
+        .then(async () => {
+          notifySuccess('È stata impostata la password di default.', 'Modifica salvata');
+        })
+        .catch(async (error) => {
+          notifyError(error.data.message, 'Impossibile resettare la password')
+        })
+    await refreshUsers()
+
+    setTimeout(async () => {
+      editing.value[user.id] = false
+    }, 100)
+  } finally {
+    loading.value = false
+  }
 }
 
-await fetchUsers()
-
-const onSaveUser = async (userName) => {
-  if (!userName.trim()) return
-
+const onSaveUser = async (name, username) => {
   loading.value = true
 
   try {
     const newUser = await $fetch('/api/users', {
       method: 'POST',
-      body: {name: userName}
+      body: {name: name, username: username}
     })
+        .then(() => {
+          notifySuccess('Utente creato con successo', 'Modifica salvata');
+          refreshUsers()
+        })
+        .catch((error) => {
+          notifyError(error.data.message, 'Impossibile creare l\'utente')
+          refreshUsers()
+        })
 
     users.value.push(newUser)
   } finally {
@@ -61,10 +92,17 @@ const editUser = (user) => {
 const updateUser = async (user) => {
   loading.value = true
   try {
-    const newUser = await $fetch('/api/users', {
+    await $fetch('/api/users', {
       method: 'PUT',
       body: {id: user.id, name: user.name, username: user.username}
     })
+        .then(() => {
+          notifySuccess('È stata aggiornato l\'utente.', 'Modifica salvata');
+        })
+        .catch((error) => {
+          notifyError(error.data.message, 'Impossibile aggiornare l\'utente')
+        })
+    await refreshUsers()
     setTimeout(() => {
       editing.value[user.id] = false
     }, 100)
@@ -86,7 +124,13 @@ const deleteUser = async (user) => {
         method: 'DELETE',
         body: {id: user.id}
       })
-      await fetchUsers()
+          .then(() => {
+            notifySuccess('Utente eliminato.', 'Modifica salvata');
+          })
+          .catch((error) => {
+            notifyError(error.data.message, 'Impossibile eliminare l\'utente')
+          })
+      await refreshUsers()
     } finally {
       loading.value = false
     }
@@ -149,6 +193,10 @@ const closeSheets = () => {
             </div>
           </div>
           <div class="flex items-center gap-4 mr-3">
+            <button v-if="authUser.role === 'admin' && !editing[user.id]" class="action-button"
+                    @click="resetUserPassword(user)">
+              <KeyRound/>
+            </button>
             <button v-if="!editing[user.id]" class="action-button" @click="editUser(user)">
               <Pencil/>
             </button>

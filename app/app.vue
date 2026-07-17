@@ -14,12 +14,16 @@ import {useAuthStore} from "~/stores/auth.ts";
 
 const auth = useAuthStore()
 const user = computed(() => auth.user)
+const timeout = ref<any>(null)
 
 const {notification, clearNotification} = useNotification();
 // Auto-chiusura della notifica dopo 5 secondi
 watch(() => notification.value.show, (newVal) => {
   if (newVal) {
-    setTimeout(() => {
+    if (timeout.value){
+      clearTimeout(timeout)
+    }
+    timeout.value = setTimeout(() => {
       clearNotification();
     }, 5000);
   }
@@ -64,7 +68,10 @@ const logout = async () => {
             'font-bold block',
             notification.type === 'error' ? 'text-rose-950' : 'text-emerald-950'
           ]">{{ notification.title }}</span>
-          <span class="block" :class="{'text-slate-600': notification.type !== 'error', 'text-rose-800': notification.type === 'error'}">{{ notification.message }}</span>
+          <span class="block"
+                :class="{'text-slate-600': notification.type !== 'error', 'text-rose-800': notification.type === 'error'}">{{
+              notification.message
+            }}</span>
         </div>
 
         <!-- Pulsante di Chiusura -->
@@ -124,6 +131,10 @@ const logout = async () => {
         <NuxtLink to="/" exact class="text-slate-400 my-2">
           <Calendar1/>
           <!--          <span class="text-xs font-medium text-slate-400">Calendario</span>-->
+        </NuxtLink>
+        <NuxtLink to="/settings" class="text-slate-400 my-2">
+          <Settings/>
+          <!--          <span class="text-xs font-medium">Impostazioni</span>-->
         </NuxtLink>
         <NuxtLink
             v-if="isAdmin" to="/users" class="text-slate-400 my-2">

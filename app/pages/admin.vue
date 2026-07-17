@@ -1,4 +1,7 @@
 <script setup>
+definePageMeta({
+  protected: true,
+})
 import {
   TriangleAlert
 } from 'lucide-vue-next'

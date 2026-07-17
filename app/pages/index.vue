@@ -1,4 +1,7 @@
 <script setup>
+definePageMeta({
+  protected: false,
+})
 import {
   Briefcase,
   Home,

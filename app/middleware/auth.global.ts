@@ -10,6 +10,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
         return navigateTo('/login')
     }
 
+    if (auth.isAuthenticated && to.meta.protected && auth.user.role !== 'admin'){
+        return navigateTo('403')
+    }
+
     if (auth.isAuthenticated && to.path === '/login') {
         return navigateTo('/')
     }

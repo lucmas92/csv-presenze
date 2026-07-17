@@ -1,6 +1,7 @@
 <script setup>
 definePageMeta({
-  public: true,
+  public: false,
+  protected: false,
 })
 
 import {

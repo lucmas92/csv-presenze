@@ -1,4 +1,7 @@
 <script setup>
+definePageMeta({
+  protected: true,
+})
 import {Save, Trash, Pencil} from 'lucide-vue-next'
 import Header from "~/components/Header.vue";
 import BottomSheetAddUser from "~/components/BottomSheetAddUser.vue";

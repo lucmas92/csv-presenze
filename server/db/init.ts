@@ -5,18 +5,20 @@ export function initDB() {
         CREATE TABLE IF NOT EXISTS users
         (
             id            INTEGER PRIMARY KEY AUTOINCREMENT,
-            name          TEXT,
-            username      TEXT,
-            role          VARCHAR(50) NOT NULL,
-            is_active     TINYINT(1)  NOT NULL DEFAULT 1,
-            last_login_at DATETIME    NULL
+            name          TEXT NOT NULL,
+            username      TEXT NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            role          VARCHAR(50)  NOT NULL,
+            is_active     TINYINT(1)   NOT NULL DEFAULT 1,
+            last_login_at DATETIME     NULL,
+            UNIQUE (username)
         );
 
         CREATE TABLE IF NOT EXISTS user_favorites
         (
             user_id          INTEGER NOT NULL,
             favorite_user_id INTEGER NOT NULL,
-            
+
             UNIQUE (user_id, favorite_user_id)
         );
 
@@ -43,6 +45,7 @@ export function initDB() {
             date       TEXT NOT NULL, -- YYYY-MM-DD
             UNIQUE (guest_name, date)
         );
+
 
         CREATE TABLE IF NOT EXISTS notes
         (

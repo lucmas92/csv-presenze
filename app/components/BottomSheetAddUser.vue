@@ -3,8 +3,9 @@ import {ref} from "vue";
 
 const name = ref<string>('')
 const username = ref<string>('')
+const isGuest = ref<boolean>(false)
 const emit = defineEmits<{
-  (e: 'saveUser', name: string, username: string): void
+  (e: 'saveUser', name: string, username: string, isGuest: boolean): void
   (e: 'abort'): void
 }>()
 
@@ -22,9 +23,18 @@ watch(props, () => {
   }
 })
 
+
+watch(name, (n) => {
+  const split = n.split(" ", 2)
+  if (split[0])
+    username.value = split[0].slice(0, 3).toLowerCase()
+  if (split[1])
+    username.value += split[1].slice(0, 3).toLowerCase()
+})
+
 const saveUser = () => {
   if (name.value && username.value) {
-    emit('saveUser', name.value, username.value)
+    emit('saveUser', name.value, username.value, isGuest.value)
     emit('abort')
   }
 }
@@ -56,7 +66,7 @@ onUnmounted(() => {
       <div class="sheet-handle"></div>
       <div class="px-5 pt-4 pb-3">
         <p class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">Aggiunta utente</p>
-        <div class="flex justify-between mb-3">
+        <div class="flex justify-between">
           <input
               class="w-full rounded-xl px-4 py-2 focus-visible:outline-none border border-gray-200"
               autofocus
@@ -65,13 +75,30 @@ onUnmounted(() => {
               @keyup.enter="saveUser()"
           />
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-between my-3">
           <input
               class="w-full rounded-xl px-4 py-2 focus-visible:outline-none border border-gray-200"
               v-model="username"
               placeholder="Username..."
               @keyup.enter="saveUser()"
           />
+        </div>
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-start justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-slate-800">Questo utente è un Ospite</span>
+            </div>
+            <p class="text-xs text-slate-500 max-w-sm">
+              Attiva questa opzione se si tratta di un consulente esterno o di un ospite temporaneo.
+            </p>
+          </div>
+
+          <!-- Switch Toggle Visivo -->
+          <label class="relative inline-flex items-center cursor-pointer mt-1 shrink-0">
+            <input type="checkbox" name="is_guest" class="sr-only peer" v-model="isGuest">
+            <span
+                class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></span>
+          </label>
         </div>
         <div class="flex flex-col gap-2 mt-2">
           <button @click="saveUser()"

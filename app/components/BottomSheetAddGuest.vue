@@ -5,6 +5,7 @@ import {initials} from "~/utils/utils";
 import {
   Plus
 } from 'lucide-vue-next'
+import GuestCombobox from "~/components/GuestCombobox.vue";
 
 const props = defineProps({
   date: {
@@ -35,6 +36,9 @@ watch(props, () => {
   selectedDate.value = props.date
 })
 
+const onSelect = (name: string) => {
+  guestName.value = name
+}
 
 const saveGuest = () => {
   if (guestName.value.length > 1) {
@@ -69,7 +73,7 @@ onUnmounted(() => {
 </script>
 <template>
   <div class="sheet-backdrop" @click.self="abort()" :class="getClass()" id="sheet">
-    <div ref="sheet" class="sheet w-full md:w-2/3 xl:w-1/3 mx-auto">
+    <div ref="sheet" class="sheet w-full md:w-2/3 xl:w-1/3 mx-auto min-h-64">
       <div class="sheet-handle"></div>
       <div class="px-5 pt-4 pb-3">
         <p class="flex items-center gap-2 text-sm font-medium text-slate-400 uppercase tracking-wider mb-3">
@@ -78,13 +82,7 @@ onUnmounted(() => {
           <span v-html="formatDate2(date)"/>
         </p>
         <div class="flex justify-between gap-2">
-          <input
-              class="w-full rounded-2xl px-4 py-2 focus-visible:outline-none border border-gray-200"
-              autofocus
-              v-model.trim="guestName"
-              placeholder="Nome ospite..."
-              @keyup.enter="saveGuest()"
-          />
+          <GuestCombobox @select="onSelect"/>
           <button @click="saveGuest()"
                   :disabled="!guestName"
                   class="w-12 py-3 rounded-2xl border bg-green-200 border-green-500 text-sm font-medium text-green-600 active:bg-green-200 disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-400">
@@ -109,10 +107,6 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="flex flex-col gap-2 mt-2">
-<!--          <button @click="saveGuest()"-->
-<!--                  class="w-full py-3 rounded-2xl border bg-green-200 border-green-500 text-sm font-medium text-green-600 active:bg-green-200">-->
-<!--            Salva-->
-<!--          </button>-->
           <button @click="abort()"
                   class="w-full py-3 rounded-2xl border border-slate-200 text-sm font-medium text-slate-600 active:bg-slate-50">
             Chiudi

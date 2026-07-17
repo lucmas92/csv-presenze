@@ -1,5 +1,5 @@
 import db from "#server/db/client";
-import {hashPassword, verifyPassword} from "~/utils/password";
+import {verifyPassword} from "~/utils/password";
 import jwt from 'jsonwebtoken'
 import type { User } from '~/types/User'
 
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     const users: User[] = db.prepare(`
         SELECT *
         FROM users
-        WHERE username = ?
+        WHERE username = ? and role != 'guest'
     `).all(username) as User[]
 
     const user = users[0] as User

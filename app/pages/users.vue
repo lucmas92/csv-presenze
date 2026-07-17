@@ -18,7 +18,11 @@ const authUser = computed(() => auth.user)
 
 const {notifyError, notifySuccess} = useNotification();
 
-const {data: users, refresh: refreshUsers} = await useFetch('/api/users')
+const {data: users, refresh: refreshUsers} = await useFetch('/api/users', {
+  query: {
+    withGuests: 1
+  }
+})
 
 const resetUserPassword = async (user) => {
   loading.value = true
@@ -43,13 +47,13 @@ const resetUserPassword = async (user) => {
   }
 }
 
-const onSaveUser = async (name, username) => {
+const onSaveUser = async (name, username, isGuest) => {
   loading.value = true
 
   try {
     const newUser = await $fetch('/api/users', {
       method: 'POST',
-      body: {name: name, username: username}
+      body: {name: name, username: username, isGuest: isGuest}
     })
         .then(() => {
           notifySuccess('Utente creato con successo', 'Modifica salvata');
@@ -169,9 +173,14 @@ const closeSheets = () => {
     <div class="mx-1 md:mx-1 flex flex-wrap">
       <div v-for="user in availableUsers" :key="user.id" class="basis-full md:basis-1/2 lg:basis-1/3">
         <div
-            class="m-2 flex justify-between bg-white mb-2 rounded-lg p-2">
+            class="m-2 flex justify-between mb-2 rounded-lg p-2 bg-white relative border">
+          <span v-if="user.role==='guest'"
+                class="absolute right-2 border bg-amber-400 font-bold border-amber-600 px-3 rounded-md">
+            Ospite
+          </span>
           <div class="flex flex-col gap-y-2">
-            <div class="text-sm font-semibold text-slate-90 truncate">
+            <div class="text-sm font-semibold text-slate-90 truncate flex flex-col">
+              <span class="text-xs text-gray-400">Nome:</span>
               <div v-if="!editing[user.id]" class="border border-transparent p-2">{{ user.name }}</div>
               <span v-else>
                   <input class="border border-gray-200 p-2"
@@ -181,7 +190,8 @@ const closeSheets = () => {
                          v-model="user.name">
                 </span>
             </div>
-            <div class="text-sm font-semibold text-slate-90 truncate">
+            <div class="text-sm font-semibold text-slate-90 truncate flex flex-col">
+              <span class="text-xs text-gray-400">Username</span>
               <div v-if="!editing[user.id]" class="border border-transparent p-2">{{ user.username || '-' }}</div>
               <span v-else>
                   <input class="border border-gray-200 p-2"
@@ -193,17 +203,20 @@ const closeSheets = () => {
             </div>
           </div>
           <div class="flex items-center gap-4 mr-3">
-            <button v-if="authUser.role === 'admin' && !editing[user.id]" class="action-button"
+            <button v-if="!editing[user.id]" class="action-button" title="Modifica utente"
+                    @click="editUser(user)">
+              <Pencil/>
+            </button>
+            <button v-if="editing[user.id]" class="action-button" title="Salva modifiche"
+                    @click="updateUser(user)">
+              <Save/>
+            </button>
+            <button v-if="authUser.role === 'admin'" class="action-button" title="Reset password"
                     @click="resetUserPassword(user)">
               <KeyRound/>
             </button>
-            <button v-if="!editing[user.id]" class="action-button" @click="editUser(user)">
-              <Pencil/>
-            </button>
-            <button v-if="editing[user.id]" class="action-button" @click="updateUser(user)">
-              <Save/>
-            </button>
-            <button class="action-button" @click="deleteUser(user)">
+            <button class="action-button" title="Elimina utente"
+                    @click="deleteUser(user)">
               <Trash/>
             </button>
           </div>

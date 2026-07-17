@@ -6,6 +6,7 @@ export default defineEventHandler(async (event) => {
 
     const name = body?.name?.trim()
     const username = body?.username?.trim()
+    const isGuest = body?.isGuest as boolean
 
     if (!name) {
         throw createError({
@@ -21,7 +22,7 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    const role = 'user'
+    const role = isGuest ? 'guest' : 'user'
 
     const password_hash = await hashPassword(username)
 

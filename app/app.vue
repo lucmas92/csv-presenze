@@ -2,7 +2,10 @@
 import pkg from '../package.json'
 import {
   Users,
-  Calendar1, Settings, LayoutGrid, LogOut
+  Calendar1,
+  LayoutGrid,
+  LogOut,
+  ChartSpline,
 } from 'lucide-vue-next'
 import {useAuthStore} from "~/stores/auth.ts";
 
@@ -37,11 +40,11 @@ const logout = async () => {
                   title="Utenti">
           <Users/>
         </NuxtLink>
-        <NuxtLink to="/settings"
+        <NuxtLink to="/stats"
                   v-if="isAdmin"
                   class="w-10 h-10 rounded-xl text-slate-400 hover:bg-blue-200 hover:text-blue-500 flex items-center justify-center transition-colors"
-                  title="Impostazioni">
-          <Settings/>
+                  title="Statistiche">
+          <ChartSpline/>
         </NuxtLink>
       </nav>
       <div class="mt-auto">
@@ -70,8 +73,8 @@ const logout = async () => {
           <!--          <span class="text-xs font-medium">Utenti</span>-->
         </NuxtLink>
         <NuxtLink
-            v-if="isAdmin" to="/settings" class="text-slate-400 my-2">
-          <settings/>
+            v-if="isAdmin" to="/stats" class="text-slate-400 my-2">
+          <ChartSpline/>
           <!--          <span class="text-xs font-medium">Impostazioni</span>-->
         </NuxtLink>
         <NuxtLink @click="logout" class="text-slate-400 my-2 active:scale-90 ">

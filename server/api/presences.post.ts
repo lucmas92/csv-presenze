@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
     const { user_id, date, status } = body
 
-    if (currentUser.id !== user_id){
+    if (currentUser.id !== user_id && currentUser.role !== 'admin'){
         throw createError({
             statusCode: 403,
             statusMessage: 'Not authorized',

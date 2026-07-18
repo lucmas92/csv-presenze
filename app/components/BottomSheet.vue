@@ -8,6 +8,7 @@ import {
 } from 'lucide-vue-next'
 import {ref} from "vue";
 import {initials} from "~/utils/utils";
+import {useAuthStore} from "~/stores/auth";
 
 const sheet = ref()
 const modal = ref()
@@ -34,6 +35,9 @@ const props = defineProps({
 })
 const localUserNote = ref(props.userNote)
 
+const auth = useAuthStore()
+const authUser = computed(() => auth.user)
+const authUserIsAdmin = computed(() => auth.user.role === 'admin')
 
 const emit = defineEmits<{
   (e: 'setStatus', userId: number, date: string, status: string | null): void
@@ -111,7 +115,7 @@ onUnmounted(() => {
               </p>
             </div>
           </div>
-          <button class="flex items-center gap-3" v-if="currentUser" type="button" @click="showAddNoteModal">
+          <button class="flex items-center gap-3" v-if="currentUser || authUserIsAdmin" type="button" @click="showAddNoteModal">
             <NotebookPen :size="24"/>
           </button>
         </div>
@@ -121,7 +125,7 @@ onUnmounted(() => {
           </p>
           <span>{{ userNote }} </span>
         </div>
-        <div v-if="currentUser" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+        <div v-if="currentUser || authUserIsAdmin" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <button @click="setStatus('office')"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-green-200 active:opacity-70">
             <span

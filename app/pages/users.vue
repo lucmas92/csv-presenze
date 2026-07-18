@@ -229,7 +229,7 @@ const closeSheets = () => {
                     @click="updateUser(user)">
               <Save/>
             </button>
-            <button v-if="authUser.role === 'admin'" class="action-button" title="Reset password"
+            <button v-if="authUser.role === 'admin' && user.role!=='guest'" class="action-button" title="Reset password"
                     @click="resetUserPassword(user)">
               <KeyRound class="text-red-800/50 fill-current"
                         v-if="defaultPasswords.has(user.id) && defaultPasswords.get(user.id)['default']"/>

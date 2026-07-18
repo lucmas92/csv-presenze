@@ -5,8 +5,8 @@ export function initDB() {
         CREATE TABLE IF NOT EXISTS users
         (
             id            INTEGER PRIMARY KEY AUTOINCREMENT,
-            name          TEXT NOT NULL,
-            username      TEXT NOT NULL,
+            name          TEXT         NOT NULL,
+            username      TEXT         NOT NULL,
             password_hash VARCHAR(255) NOT NULL,
             role          VARCHAR(50)  NOT NULL,
             is_active     TINYINT(1)   NOT NULL DEFAULT 1,
@@ -42,7 +42,8 @@ export function initDB() {
         (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             guest_name TEXT,
-            date       TEXT NOT NULL, -- YYYY-MM-DD
+            date       TEXT    NOT NULL, -- YYYY-MM-DD
+            created_by INTEGER NOT NULL,
             UNIQUE (guest_name, date)
         );
 

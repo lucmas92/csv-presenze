@@ -91,7 +91,7 @@ onUnmounted(() => {
         </div>
         <div class="flex flex-col gap-2" :class="{'mt-2': guests.length > 0}">
           <div v-for="guest in (guests as any)" :key="guest.id"
-               class="flex justify-between items-center p-2 border border-gray-200 rounded-2xl">
+               class="relative flex justify-between items-center px-2 pt-2 pb-3 border border-gray-200 rounded-2xl">
             <div class="flex items-center gap-3 px-4 py-2 border-b border-slate-50">
               <div
                   class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-xs font-semibold shrink-0">
@@ -104,6 +104,9 @@ onUnmounted(() => {
             <button type="button" @click="deleteGuest(guest)">
               <Trash/>
             </button>
+            <p class="absolute bottom-1 right-3 text-xs text-gray-400">
+              Aggiunto da: <strong>{{guest.creator}}</strong>
+            </p>
           </div>
         </div>
         <div class="flex flex-col gap-2 mt-2">

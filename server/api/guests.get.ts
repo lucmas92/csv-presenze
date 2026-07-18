@@ -11,7 +11,8 @@ export default defineEventHandler((event) => {
     }
 
     const stmt = db.prepare(`
-    SELECT * FROM guests
+    SELECT users.name as creator, guests.* FROM guests
+     JOIN users on guests.created_by = users.id
     WHERE date BETWEEN ? AND ?
   `)
 

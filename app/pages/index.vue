@@ -116,6 +116,8 @@ const {data: guests, refresh: refreshGuests} = await useFetch('/api/guests', {
   watch: [fromQuery, toQuery]
 })
 
+console.log('guests', guests.value)
+
 const presences = computed(() => {
   const map = {}
 

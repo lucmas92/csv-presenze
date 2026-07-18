@@ -3,16 +3,17 @@ import {SqliteError} from "better-sqlite3";
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
+    const currentUser = event.context.user
 
     const {guest_name, date} = body
 
     const stmt = db.prepare(`
-        INSERT INTO guests (guest_name, date)
-        VALUES (?, ?)
+        INSERT INTO guests (guest_name, date, created_by)
+        VALUES (?, ?, ?)
     `)
 
     try{
-        stmt.run(guest_name, date)
+        stmt.run(guest_name, date, currentUser.id)
     }catch(e){
         if (e instanceof SqliteError && e.code === 'SQLITE_CONSTRAINT_UNIQUE') {
             throw createError({

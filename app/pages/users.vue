@@ -189,7 +189,7 @@ const closeSheets = () => {
     <input type="text" v-model="searchQuery" class="mx-2 px-7 py-2 w-full mb-2 rounded-xl" placeholder="Ricerca...">
 
     <div class="mx-1 md:mx-1 flex flex-wrap">
-      <div v-for="user in availableUsers" :key="user.id" class="basis-full md:basis-1/2 lg:basis-1/3">
+      <div v-for="user in availableUsers" :key="user.id" class="basis-full md:basis-1/2 lg:basis-1/3 2xl:basis-1/4">
         <div
             class="m-2 flex justify-between mb-2 rounded-lg p-2 bg-white relative border">
           <span v-if="user.role==='guest'"

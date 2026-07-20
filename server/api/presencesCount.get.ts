@@ -7,7 +7,7 @@ export default defineEventHandler((event) => {
 
     const result = db.prepare(`
       SELECT COUNT(*) as total 
-      FROM presences WHERE date = ?
+      FROM presences WHERE date = ? AND is_in_meeting = false
     `).get(date) as { total: number } | undefined
 
     const count = result ? result.total : 0

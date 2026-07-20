@@ -21,6 +21,7 @@ const notesDraft = ref({})
 
 const currentMonday = ref(getCurrentWeek()[0])
 const selectedUser = ref(null)
+const selectedUserPresence = ref(null)
 const selectedUserNote = ref(null)
 const selectedDate = ref(null)
 const searchQuery = ref('')
@@ -116,7 +117,6 @@ const {data: guests, refresh: refreshGuests} = await useFetch('/api/guests', {
   watch: [fromQuery, toQuery]
 })
 
-console.log('guests', guests.value)
 
 const presences = computed(() => {
   const map = {}
@@ -130,6 +130,10 @@ const presences = computed(() => {
 
   return map
 })
+
+const presencesForUser = (user) => {
+  return presencesData.value.filter(p => p.user_id === user.id);
+}
 
 // 📦 dati DB
 const {data: presencesData, refresh: refreshPresences} = await useFetch('/api/presences', {
@@ -145,7 +149,7 @@ const availableUsers = computed(() => {
 
   // EASTER EGG!
   if (searchQuery.value === 'ferie' || searchQuery.value === 'spiaggia') {
-    return [{ id: 'egg', name: 'Il tuo lettino a Ibiza 🌴', role: 'guest' }]
+    return [{id: 'egg', name: 'Il tuo lettino a Ibiza 🌴', role: 'guest'}]
   }
 
   let filtered = users.value.filter((u) => {
@@ -190,7 +194,7 @@ const totalPresences = (date) => {
   let guests = 0
   let total = presencesData.value
       .filter(item => item.date === date)
-      .filter(item => item.status === 'office')
+      .filter(item => item.status === 'office' && !item.is_in_meeting)
       .length
 
   const b = guestsPerDay.value.get(date)
@@ -208,7 +212,8 @@ const countByStatus = computed(() => {
   return presencesData.value
       .filter(item => item.date === today.value)
       .reduce((acc, item) => {
-        acc[item.status] = (acc[item.status] || 0) + 1;
+        if (!item.is_in_meeting)
+          acc[item.status] = (acc[item.status] || 0) + 1;
         return acc;
       }, {});
 })
@@ -254,10 +259,11 @@ const nextWeek = () => {
 }
 
 
-const openSheet = (user, date, note) => {
+const openSheet = (user, date, note, presence) => {
   selectedDate.value = date
   selectedUserNote.value = note
   selectedUser.value = user
+  selectedUserPresence.value = presence
   setTimeout(() => {
     bottomSheetOpen.value = true
   }, 100)
@@ -278,11 +284,12 @@ const onSaveGuest = async (guest_name, date) => {
   await $fetch('/api/guests', {
     method: 'POST',
     body: {guest_name: guest_name, date}
-  }).catch((error) => {
-    notifyError(error.data.message, 'Impossibile aggiungere l\'ospite')
   })
       .then(async () => {
-        notifySuccess('È stata aggiunto un ospite.', 'Modifica salvata');
+        notifySuccess('È stato aggiunto un ospite.', 'Modifica salvata');
+      })
+      .catch((error) => {
+        notifyError(error.data.message, 'Impossibile aggiungere l\'ospite')
       })
 
   await refreshGuests()
@@ -332,12 +339,12 @@ const count = async (date) => {
   })
 }
 
-const onSetStatus = async (userId, date, status) => {
+const onSetStatus = async (userId, date, status, isInMeeting, isEatingOut, close = true) => {
 
   const totalCurrentPresences = await count(date)
 
-  if (totalCurrentPresences.count >= 10 && status === 'office'){
-    await onSaveNote(userId, date, `Capienza massima raggiunta! Tu sei il #${totalCurrentPresences.count+1}`)
+  if (totalCurrentPresences.count >= 10 && status === 'office') {
+    await onSaveNote(userId, date, `Capienza massima raggiunta! Tu sei il #${totalCurrentPresences.count + 1}`)
     notifyError("Potresti dover utilizzare una postazione di emergenza o concordare la presenza con il tuo team.", "Capienza massima raggiunta")
   }
 
@@ -352,17 +359,24 @@ const onSetStatus = async (userId, date, status) => {
 
     delete presences.value[key]
   } else {
+
+    if (status !== 'office') {
+      isEatingOut = false
+      isInMeeting = false
+    }
+
     // 💾 UPSERT
     await $fetch('/api/presences', {
       method: 'POST',
-      body: {user_id: userId, date, status: status}
+      body: {user_id: userId, date, status: status, isInMeeting: isInMeeting, isEatingOut: isEatingOut}
     })
 
     presences.value[key] = status
   }
 
   await refreshPresences()
-  closeSheets()
+  if (close)
+    closeSheets()
 }
 
 const showAddGuest = (d) => {
@@ -445,12 +459,13 @@ const showAddGuest = (d) => {
         <div id="user-list">
 
           <UserPresenceRow
-              :presencesData="presencesData"
+              :presencesData="presencesForUser(user)"
               :weekDays="weekDays"
               :today="today"
               :currentUser="true"
               :notes="notesDraft"
               :user="{...user}"
+              @setStatus="onSetStatus"
               @openSheet="openSheet"
           />
 
@@ -459,13 +474,14 @@ const showAddGuest = (d) => {
             <UserPresenceRow
                 v-for="favorite in favoriteUsers"
                 :key="favorite.name"
-                :presencesData="presencesData"
+                :presencesData="presencesForUser(favorite)"
                 :weekDays="weekDays"
                 :today="today"
                 :notes="notesDraft"
                 :user="favorite"
                 :isFavorite="true"
                 @openSheet="openSheet"
+                @setStatus="onSetStatus"
                 @refreshFavorites="refreshFavorites"
             />
           </div>
@@ -473,12 +489,13 @@ const showAddGuest = (d) => {
           <UserPresenceRow
               v-for="user in availableUsers"
               :key="user.name"
-              :presencesData="presencesData"
+              :presencesData="presencesForUser(user)"
               :weekDays="weekDays"
               :today="today"
               :notes="notesDraft"
               :user="user"
               @openSheet="openSheet"
+              @setStatus="onSetStatus"
               @refreshFavorites="refreshFavorites"
           />
         </div>
@@ -487,6 +504,7 @@ const showAddGuest = (d) => {
                      :user="selectedUser"
                      :date="selectedDate"
                      :userNote="selectedUserNote"
+                     :userPresence="selectedUserPresence"
                      :currentUser="selectedUser.id === user.id"
                      @setStatus="onSetStatus"
                      @abort="closeSheets"

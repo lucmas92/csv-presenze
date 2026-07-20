@@ -4,13 +4,14 @@ import {
   Home,
   Plane,
   Minus,
-  NotebookPen
+  NotebookPen,
+  Utensils,
+  Presentation
 } from 'lucide-vue-next'
 import {ref} from "vue";
 import {initials} from "~/utils/utils";
 import {useAuthStore} from "~/stores/auth";
 
-const sheet = ref()
 const modal = ref()
 
 const props = defineProps({
@@ -29,34 +30,51 @@ const props = defineProps({
   userNote: {
     type: String,
   },
+  userPresence: {
+    type: Object,
+    default: {}
+  },
   currentUser: {
     type: Boolean,
   }
 })
 const localUserNote = ref(props.userNote)
+const localIsInMeeting = ref(!!props.userPresence?.is_in_meeting)
+const localIsEatingOut = ref(!!props.userPresence?.is_eating_out)
+
+const userDateStatus = computed(() => {
+  return props.userPresence?.status || null
+})
 
 const auth = useAuthStore()
-const authUser = computed(() => auth.user)
 const authUserIsAdmin = computed(() => auth.user.role === 'admin')
 
 const emit = defineEmits<{
-  (e: 'setStatus', userId: number, date: string, status: string | null): void
+  (e: 'setStatus', userId: number, date: string, status: string | null, isInMeeting: boolean, isEatingOut: boolean, close?:boolean): void
   (e: 'saveNote', userId: number, date: string, note: string): void
   (e: 'abort'): void
 }>()
 
 const setStatus = (status: string | null) => {
-  emit("setStatus", props.user.id, props.date, status)
+  emit("setStatus", props.user.id, props.date, status, localIsInMeeting.value, localIsEatingOut.value)
 }
 
 const saveNote = (isDelete = false) => {
   if (isDelete || (localUserNote.value && localUserNote.value.length > 0)) {
-    emit("saveNote", props.user.id, props.date, localUserNote.value)
+    emit("saveNote", props.user.id, props.date, localUserNote.value as string)
     setTimeout(() => {
       modal.value.close()
     }, 100)
   }
 }
+
+watch(localIsEatingOut, () => {
+  emit("setStatus", props.user.id, props.date, props.userPresence.status, localIsInMeeting.value, localIsEatingOut.value, false)
+})
+
+watch(localIsInMeeting, () => {
+  emit("setStatus", props.user.id, props.date, props.userPresence.status, localIsInMeeting.value, localIsEatingOut.value, false)
+})
 
 const deleteNote = () => {
   localUserNote.value = ''
@@ -78,6 +96,10 @@ const showAddNoteModal = () => {
     modal.value.showModal()
   }, 100)
 }
+
+const isCurrentStatusOffice = computed(() => {
+  return userDateStatus.value === 'office'
+})
 
 const handleKeyDown = (event: any) => {
   if (event.key === 'Escape' || event.key === 'Esc') {
@@ -115,7 +137,8 @@ onUnmounted(() => {
               </p>
             </div>
           </div>
-          <button class="flex items-center gap-3" v-if="currentUser || authUserIsAdmin" type="button" @click="showAddNoteModal">
+          <button class="flex items-center gap-3" v-if="currentUser || authUserIsAdmin" type="button"
+                  @click="showAddNoteModal">
             <NotebookPen :size="24"/>
           </button>
         </div>
@@ -127,6 +150,7 @@ onUnmounted(() => {
         </div>
         <div v-if="currentUser || authUserIsAdmin" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <button @click="setStatus('office')"
+                  :class="{'border-2 border-blue-400': userDateStatus === 'office'}"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-green-200 active:opacity-70">
             <span
                 class="w-10 h-10 rounded-xl bg-green-300 flex items-center justify-center">
@@ -135,6 +159,7 @@ onUnmounted(() => {
             <span class="text-xs font-medium text-green-800">Presente</span>
           </button>
           <button @click="setStatus('remote')"
+                  :class="{'border-2 border-blue-400': userDateStatus === 'remote'}"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-200 active:opacity-70">
             <span class="w-10 h-10 rounded-xl bg-gray-300 flex items-center justify-center">
               <Home/>
@@ -142,6 +167,7 @@ onUnmounted(() => {
             <span class="text-xs font-medium text-gray-800">Smart</span>
           </button>
           <button @click="setStatus('holiday')"
+                  :class="{'border-2 border-blue-400': userDateStatus === 'holiday'}"
                   class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-orange-200 active:opacity-70">
             <span class="w-10 h-10 rounded-xl bg-orange-300 flex items-center justify-center">
               <Plane/>
@@ -155,6 +181,47 @@ onUnmounted(() => {
             </span>
             <span class="text-xs font-medium text-slate-500">Rimuovi</span>
           </button>
+        </div>
+        <div v-if="isCurrentStatusOffice" class="mb-4">
+          <div
+              class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-around gap-4 lg:flex-row">
+            <div class="w-full flex items-center justify-between">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <Presentation/>
+                  <span class="text-sm font-semibold text-slate-800">Sono in riunione</span>
+                </div>
+                <p class="text-xs text-slate-500 max-w-sm">
+                  Attiva questa opzione se non devi occupare posti
+                </p>
+              </div>
+
+              <!-- Switch Toggle Visivo -->
+              <label class="relative inline-flex items-center cursor-pointer mt-1 shrink-0">
+                <input type="checkbox" name="is_guest" class="sr-only peer" v-model="localIsInMeeting">
+                <span
+                    class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></span>
+              </label>
+            </div>
+            <div class="w-full flex items-center justify-between">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <Utensils/>
+                  <span class="text-sm font-semibold text-slate-800">Pranzo fuori</span>
+                </div>
+                <p class="text-xs text-slate-500 max-w-sm">
+                  Attiva questa opzione se mangi fuori
+                </p>
+              </div>
+
+              <!-- Switch Toggle Visivo -->
+              <label class="relative inline-flex items-center cursor-pointer mt-1 shrink-0">
+                <input type="checkbox" name="is_guest" class="sr-only peer" v-model="localIsEatingOut">
+                <span
+                    class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></span>
+              </label>
+            </div>
+          </div>
         </div>
         <button @click="abort()"
                 class="w-full py-3 rounded-2xl border border-slate-200 text-sm font-medium text-slate-600 active:bg-slate-50">

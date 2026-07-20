@@ -1,8 +1,8 @@
 <script setup>
 import {initials} from "~/utils/utils.ts";
-import {Briefcase, Home, Minus, Plane, Star, StickyNote} from "lucide-vue-next";
+import {Briefcase, Home, Minus, Plane, Star, StickyNote, Utensils, Presentation} from "lucide-vue-next";
 
-const emit = defineEmits(['refreshFavorites', 'openSheet'])
+const emit = defineEmits(['refreshFavorites', 'openSheet', 'setStatus'])
 
 const props = defineProps({
   user: {
@@ -58,20 +58,50 @@ const presences = computed(() => {
   if (!props.presencesData) return map
 
   for (const p of props.presencesData) {
-    const key = `${p.user_id}-${p.date}`
-    map[key] = p.status
+    map[p.date] = p.status
   }
 
   return map
 })
+
 
 const dayNum = (d) => {
   const date = new Date(d)
   return date.getDate()
 }
 
+const isInMeeting = (date) => {
+  const presence = props.presencesData.find(p => p.date === date)
+  return presence?.status === 'office' && !!presence?.is_in_meeting
+}
+const isEatingOut = (date) => {
+  const presence = props.presencesData.find(p => p.date === date)
+  return presence?.status === 'office' && !!presence?.is_eating_out
+}
+
+const toggleOfficeStatus = (date) => {
+  toggleStatus(date, 'office')
+}
+
+const toggleRemoteStatus = (date) => {
+  toggleStatus(date, 'remote')
+}
+
+const toggleStatus = (date, status) => {
+
+  const currentDateStatus = presences.value[`${props.user.id}-${date}`] || null
+  if (currentDateStatus === status)
+    emit("setStatus", props.user.id, date, null)
+  else
+    emit("setStatus", props.user.id, date, status)
+}
+
 const openSheet = (date) => {
-  emit("openSheet", props.user, date, props.notes[`${props.user.id}-${date}`])
+  const note = props.notes[`${props.user.id}-${date}`]
+  const presence = props.presencesData.find(p => {
+    return p.date === date;
+  })
+  emit("openSheet", props.user, date, note, presence)
 }
 
 const hasNote = (date) => {
@@ -102,11 +132,11 @@ const userClass = computed(() => {
   if (props.isFavorite) return 'border-2 border-green-400'
 })
 
-const countByUser = (user) => {
+const countByUser = () => {
   if (!props.presencesData) return {}
 
   return props.presencesData
-      .filter(item => item.user_id === user.id && item.status === 'office')
+      .filter(item => item.status === 'office')
       .length
 }
 
@@ -143,9 +173,11 @@ const setFavorite = async (favorite) => {
        :class="userClass">
     <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-50">
       <span class="relative flex size-3 w-10 h-10 ">
-        <span class="absolute  inline-flex w-10 h-10 animate-ping rounded-full opacity-75" :class="{'bg-green-300': isOnline}">
+        <span class="absolute  inline-flex w-10 h-10 animate-ping rounded-full opacity-75"
+              :class="{'bg-green-300': isOnline}">
         </span>
-        <span class="relative inline-flex items-center w-10 h-10 size-3 rounded-full border border-gray-300" :class="{'bg-green-400': isOnline}">
+        <span class="relative inline-flex items-center w-10 h-10 size-3 rounded-full border border-gray-300"
+              :class="{'bg-green-400': isOnline}">
           <span class="mx-auto">{{ initials(user.name) }}</span>
         </span>
 
@@ -165,8 +197,11 @@ const setFavorite = async (favorite) => {
     <div class="flex justify-around px-2 py-3">
       <button v-for="d in weekDays" :key="d"
               class="day-pill h-16 md:min-w-24 lg:min-w-40 xl:min-w-52 border border-gray-150 rounded-xl"
-              :class="getDayPillClass(d, presences[`${user.id}-${d}`])"
-              @click="openSheet(d)">
+              :class="getDayPillClass(d, presences[`${d}`])"
+              @click.ctrl="toggleRemoteStatus(d)"
+              @click.meta="toggleRemoteStatus(d)"
+              @click.shift="toggleOfficeStatus(d)"
+              @click.exact="openSheet(d)">
           <span
               :class="{'text-blue-500': d===today, 'text-slate-400':d!==today}"
               class="text-[10px] font-medium">
@@ -176,10 +211,15 @@ const setFavorite = async (favorite) => {
               {{ dayNum(d) }}
           </span>
         <span>
-            <StickyNote v-if="hasNote(d)" class="absolute top-0 md:top-1 -right-4 md:right-1 text-blue-800" :size="12"/>
-            <Briefcase class="text-green-500" v-if="presences[`${user.id}-${d}`] === 'office'" :size="18"/>
-            <Home class="text-gray-500" v-else-if="presences[`${user.id}-${d}`] === 'remote'" :size="18"/>
-            <Plane class="text-orange-500" v-else-if="presences[`${user.id}-${d}`] === 'holiday'" :size="18"/>
+            <StickyNote v-if="hasNote(d)" class="absolute fill-current top-0 md:top-1 -right-5 md:right-1 text-blue-800" :size="13"/>
+            <Presentation v-if="isInMeeting(d)" class="absolute fill-current top-5 md:top-5 -right-5 md:right-1 text-blue-800"
+                          :size="13"/>
+            <Utensils v-if="isEatingOut(d)"
+                      class="absolute fill-current top-9 md:top-9 -right-5 md:right-1 text-blue-800" :size="13"/>
+
+            <Briefcase data-tooltip-target="tooltip-utensils" class="text-green-500" v-if="presences[`${d}`] === 'office'" :size="18"/>
+            <Home class="text-gray-500" v-else-if="presences[`${d}`] === 'remote'" :size="18"/>
+            <Plane class="text-orange-500" v-else-if="presences[`${d}`] === 'holiday'" :size="18"/>
             <Minus v-else :size="16"/>
           </span>
       </button>

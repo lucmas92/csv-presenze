@@ -43,6 +43,7 @@ const onSelect = (name: string) => {
 const saveGuest = () => {
   if (guestName.value.length > 1) {
     emit('saveGuest', guestName.value, selectedDate.value)
+    guestName.value = ''
   }
 }
 
@@ -82,7 +83,7 @@ onUnmounted(() => {
           <span v-html="formatDate2(date)"/>
         </p>
         <div class="flex justify-between gap-2">
-          <GuestCombobox @select="onSelect"/>
+          <GuestCombobox @select="onSelect" :currentGuestName="guestName"/>
           <button @click="saveGuest()"
                   :disabled="!guestName"
                   class="w-12 py-3 rounded-2xl border bg-green-200 border-green-500 text-sm font-medium text-green-600 active:bg-green-200 disabled:bg-gray-200 disabled:text-gray-400 disabled:border-gray-400">

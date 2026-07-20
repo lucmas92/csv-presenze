@@ -5,9 +5,9 @@ export default defineEventHandler(async (event) => {
 
     const currentUser = event.context.user
 
-    const { user_id, date, status } = body
+    const {user_id, date, status, isInMeeting, isEatingOut} = body
 
-    if (currentUser.id !== user_id && currentUser.role !== 'admin'){
+    if (currentUser.id !== user_id && currentUser.role !== 'admin') {
         throw createError({
             statusCode: 403,
             statusMessage: 'Not authorized',
@@ -15,13 +15,20 @@ export default defineEventHandler(async (event) => {
     }
 
     const stmt = db.prepare(`
-    INSERT INTO presences (user_id, date, status)
-    VALUES (?, ?, ?)
-    ON CONFLICT(user_id, date)
-    DO UPDATE SET status = excluded.status
-  `)
+        INSERT INTO presences (user_id, date, status, is_in_meeting, is_eating_out)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(user_id, date)
+            DO UPDATE SET status = excluded.status,  is_in_meeting = excluded.is_in_meeting,   is_eating_out = excluded.is_eating_out 
+    `)
 
-    stmt.run(user_id, date, status)
+    try {
 
-    return { success: true }
+        stmt.run(user_id, date, status, isInMeeting ? 1 : 0, isEatingOut ? 1 : 0)
+        return {success: true}
+    } catch (e) {
+        console.error(e)
+        return {success: false}
+
+    }
+
 })

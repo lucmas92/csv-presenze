@@ -2,9 +2,15 @@
 import {Search, ChevronsUpDown} from 'lucide-vue-next'
 
 const emit = defineEmits(['select'])
+const props = defineProps(['currentGuestName'])
+
 
 const isOpen = ref(false)
 const search = ref('')
+
+watch(props, () => {
+  search.value = props.currentGuestName || ''
+})
 
 const selectGuest = (guest) => {
   emit('select', guest.name)

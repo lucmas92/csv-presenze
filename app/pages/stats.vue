@@ -11,10 +11,10 @@ import PresenzePerPersona from "~/components/stats/PresenzePerPersona.vue";
 </script>
 <template>
 
-  <div class="h-screen overflow-scroll pb-48 md:pb-0">
+  <div class="h-screen overflow-scroll pb-48 md:pb-12">
     <Header class="mb-2"/>
     <div
-        class="flex gap-4 flex-wrap items-center justify-center min-h-64">
+        class="flex mx-2 flex-col gap-4 flex-wrap items-center justify-center min-h-64">
       <AffollamentoPerGiorno/>
       <StatoPerPersona/>
       <PresenzePerPersona/>

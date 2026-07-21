@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-xl border border-gray-100 p-5">
+  <div class="bg-white rounded-xl border border-gray-100 p-5 w-full">
     <h3 class="text-sm font-medium text-gray-700 mb-4">Colleghi vs ospiti per mese</h3>
     <ClientOnly>
       <apexchart

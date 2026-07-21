@@ -1,6 +1,6 @@
 <!-- components/stats/PresenceRateChart.vue -->
 <template>
-  <div class="bg-white rounded-xl border border-gray-100 p-5">
+  <div class="bg-white rounded-xl border border-gray-100 p-5 w-full">
     <div class="mb-4">
       <h3 class="text-sm font-medium text-gray-900">Tasso di presenza in ufficio</h3>
       <p class="text-xs text-gray-400 mt-0.5">% giorni in ufficio sul totale registrato</p>

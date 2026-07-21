@@ -10,7 +10,7 @@ export function updateDB() {
     console.log('Database version:', version)
 
     // per uso RESET
-    db.prepare(`PRAGMA user_version = 0`).run()
+    // db.prepare(`PRAGMA user_version = 0`).run()
 
     if (version < 1) {
         console.log('update 1')

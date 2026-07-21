@@ -423,7 +423,7 @@ const showAddGuest = (d) => {
           <div class="relative" v-for="d in weekDays" :key="d">
             <button type="button" @click="showAddGuest(d)"
                     :class="classDayStripButton(d)"
-                    class="flex flex-col items-center md:min-w-24 lg:min-w-40 xl:min-w-52 rounded-xl border p-2 px-6 border-gray-150">
+                    class="flex flex-col items-center md:min-w-24 lg:min-w-40 xl:min-w-52 rounded-xl border py-2 px-6 border-gray-150">
               <span class="text-[9px] font-medium uppercase" style="line-height: .8rem">{{ shortDayName(d) }}</span>
               <span class="text-sm font-semibold" style="line-height: .8rem">{{ dayNum(d) }}</span>
               <span class="text-[9px] font-medium" style="line-height: .8rem">{{ dayMonth(d) }}</span>

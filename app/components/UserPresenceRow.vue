@@ -196,7 +196,7 @@ const setFavorite = async (favorite) => {
     </div>
     <div class="flex justify-around px-2 py-3">
       <button v-for="d in weekDays" :key="d"
-              class="day-pill h-16 md:min-w-24 lg:min-w-40 xl:min-w-52 border border-gray-150 rounded-xl"
+              class="day-pill h-16 md:min-w-24 lg:min-w-40 xl:min-w-52 py-2 px-6 border border-gray-150 rounded-xl"
               :class="getDayPillClass(d, presences[`${d}`])"
               @click.ctrl="toggleRemoteStatus(d)"
               @click.meta="toggleRemoteStatus(d)"
@@ -211,11 +211,11 @@ const setFavorite = async (favorite) => {
               {{ dayNum(d) }}
           </span>
         <span>
-            <StickyNote v-if="hasNote(d)" class="absolute fill-current top-0 md:top-1 -right-5 md:right-1 text-black" :size="16"/>
-            <Presentation v-if="isInMeeting(d)" class="absolute fill-current top-6 md:top-6 -right-5 md:right-1 text-black"
+            <StickyNote v-if="hasNote(d)" class="absolute fill-current top-0 md:top-0 -right-5 md:right-1 text-black" :size="16"/>
+            <Presentation v-if="isInMeeting(d)" class="absolute fill-current top-6 md:top-1/3 -right-5 md:right-1 text-black"
                           :size="16"/>
             <Utensils v-if="isEatingOut(d)"
-                      class="absolute fill-current top-11 md:top-11 -right-5 md:right-1 text-black" :size="16"/>
+                      class="absolute fill-current top-3/4 md:top-11 -right-5 md:right-1 text-black" :size="16"/>
 
             <Briefcase data-tooltip-target="tooltip-utensils" class="text-green-500" v-if="presences[`${d}`] === 'office'" :size="18"/>
             <Home class="text-gray-500" v-else-if="presences[`${d}`] === 'remote'" :size="18"/>
@@ -234,8 +234,6 @@ const setFavorite = async (favorite) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 44px;
-  padding: 6px 0;
   cursor: pointer;
   transition: background .12s, transform .1s;
   position: relative;

@@ -182,7 +182,7 @@ onUnmounted(() => {
             <span class="text-xs font-medium text-slate-500">Rimuovi</span>
           </button>
         </div>
-        <div v-if="isCurrentStatusOffice" class="mb-4">
+        <div v-if="(currentUser && isCurrentStatusOffice) || authUserIsAdmin" class="mb-4">
           <div
               class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-around gap-4 lg:flex-row">
             <div class="w-full flex items-center justify-between">

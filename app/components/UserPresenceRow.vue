@@ -211,11 +211,11 @@ const setFavorite = async (favorite) => {
               {{ dayNum(d) }}
           </span>
         <span>
-            <StickyNote v-if="hasNote(d)" class="absolute fill-current top-0 md:top-1 -right-5 md:right-1 text-blue-800" :size="13"/>
-            <Presentation v-if="isInMeeting(d)" class="absolute fill-current top-5 md:top-5 -right-5 md:right-1 text-blue-800"
-                          :size="13"/>
+            <StickyNote v-if="hasNote(d)" class="absolute fill-current top-0 md:top-1 -right-5 md:right-1 text-black" :size="16"/>
+            <Presentation v-if="isInMeeting(d)" class="absolute fill-current top-6 md:top-6 -right-5 md:right-1 text-black"
+                          :size="16"/>
             <Utensils v-if="isEatingOut(d)"
-                      class="absolute fill-current top-9 md:top-9 -right-5 md:right-1 text-blue-800" :size="13"/>
+                      class="absolute fill-current top-11 md:top-11 -right-5 md:right-1 text-black" :size="16"/>
 
             <Briefcase data-tooltip-target="tooltip-utensils" class="text-green-500" v-if="presences[`${d}`] === 'office'" :size="18"/>
             <Home class="text-gray-500" v-else-if="presences[`${d}`] === 'remote'" :size="18"/>

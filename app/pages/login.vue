@@ -1,6 +1,6 @@
 <script setup>
 definePageMeta({
-  public: false,
+  public: true,
   protected: false,
 })
 

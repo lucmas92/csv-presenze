@@ -341,12 +341,6 @@ const count = async (date) => {
 
 const onSetStatus = async (userId, date, status, isInMeeting, isEatingOut, close = true) => {
 
-  const totalCurrentPresences = await count(date)
-
-  if (totalCurrentPresences.count >= 10 && status === 'office') {
-    await onSaveNote(userId, date, `Capienza massima raggiunta! Tu sei il #${totalCurrentPresences.count + 1}`)
-    notifyError("Potresti dover utilizzare una postazione di emergenza o concordare la presenza con il tuo team.", "Capienza massima raggiunta")
-  }
 
   const key = `${userId}-${date}`
 
@@ -372,6 +366,11 @@ const onSetStatus = async (userId, date, status, isInMeeting, isEatingOut, close
     })
 
     presences.value[key] = status
+  }
+  const totalCurrentPresences = await count(date)
+
+  if (totalCurrentPresences.count > 10 && status === 'office') {
+    notifyError("Potresti dover utilizzare una postazione di emergenza o concordare la presenza con il tuo team.", "Capienza massima raggiunta")
   }
 
   await refreshPresences()
@@ -428,7 +427,8 @@ const showAddGuest = (d) => {
               <span class="text-sm font-semibold" style="line-height: .8rem">{{ dayNum(d) }}</span>
               <span class="text-[9px] font-medium" style="line-height: .8rem">{{ dayMonth(d) }}</span>
             </button>
-            <div class="font-light text-center">{{ totalPresences(d) }}</div>
+            <div class="text-center"
+                 :class="{'font-bold':totalPresences(d) == 10, 'text-red-600 font-bold' : totalPresences(d) > 10}">{{ totalPresences(d) }}</div>
           </div>
         </div>
       </template>

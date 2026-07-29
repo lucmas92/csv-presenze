@@ -8,7 +8,16 @@ export default defineEventHandler((event) => {
         })
     }
 
+    const returnedUser = {
+        id: event.context.user['id'],
+        name: event.context.user['name'],
+        username: event.context.user['username'],
+        role: event.context.user['role'],
+        is_active: event.context.user['is_active'],
+        last_login_at: event.context.user['last_login_at'],
+    }
+
     return {
-        user: event.context.user
+        user: returnedUser
     }
 })

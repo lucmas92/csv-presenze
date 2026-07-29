@@ -52,7 +52,7 @@ const updatePassword = async () => {
   <div class="h-screen overflow-scroll pb-48 md:pb-0">
     <Header class="mb-2">
       <template v-slot:default>
-        <div v-if="user.username=='lucmas'" class="flex items-center gap-2 md:gap-3">
+        <div v-if="user.username==='lucmas'" class="flex items-center gap-2 md:gap-3">
           <div>Impostazioni</div>
           <NuxtLink to="/admin" exact
                     class="w-10 h-10 rounded-xl text-slate-400 hover:bg-blue-200 hover:text-blue-500 flex items-center justify-center"

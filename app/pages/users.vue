@@ -19,10 +19,6 @@ const defaultPasswords = ref(new Map())
 
 const {notifyError, notifySuccess} = useNotification();
 
-const isDefaultPassword = async (user) => {
-  return await verifyPassword(user.username, user.password_hash)
-}
-
 const {data: users, refresh: refreshUsers} = await useFetch('/api/users', {
   query: {
     withGuests: 1
@@ -31,15 +27,13 @@ const {data: users, refresh: refreshUsers} = await useFetch('/api/users', {
 
 const fetchDefaultPassword = () => {
   users.value.forEach(async (u) => {
-    const def = await isDefaultPassword(u)
+    const def = u.is_default_password
     defaultPasswords.value.set(u.id, {default: def})
   })
 }
 
 onMounted(() => {
-  setTimeout(() => {
-    fetchDefaultPassword()
-  }, 1000)
+  fetchDefaultPassword()
 })
 
 

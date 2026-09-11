@@ -1,12 +1,27 @@
-import db from '../db/client'
-import {SqliteError} from "better-sqlite3";
+import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
+    // 1. Verifica autenticazione utente
+    const user = await serverSupabaseUser(event)
+    if (!user) {
+        throw createError({
+            statusCode: 401,
+            statusMessage: 'Non autorizzato'
+        })
+    }
+
     const body = await readBody(event)
 
     const id = body?.id
     const name = body?.name?.trim()
     const username = body?.username?.trim()
+
+    if (!id) {
+        throw createError({
+            statusCode: 400,
+            statusMessage: 'ID utente obbligatorio'
+        })
+    }
 
     if (!name) {
         throw createError({
@@ -14,31 +29,38 @@ export default defineEventHandler(async (event) => {
             statusMessage: 'Nome obbligatorio'
         })
     }
+
     if (!username) {
         throw createError({
             statusCode: 400,
             statusMessage: 'Username obbligatorio'
         })
     }
-    try {
 
-        const stmt = db.prepare(`
-            UPDATE users
-            set name     = ?,
-                username = ?
-            where id = ?
-        `)
+    // 2. Client Supabase basato sulla sessione utente
+    const client = await serverSupabaseClient(event)
 
-        stmt.run(name, username, id)
-    } catch (e) {
-        if (e instanceof SqliteError && e.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+    // 3. Esecuzione dell'UPDATE
+    const { error } = await client
+        .from('users')
+        .update({ name, username })
+        .eq('id', id)
+
+    // 4. Gestione errori PostgreSQL
+    if (error) {
+        // Codice PostgreSQL 23505 = unique_violation (username già presente)
+        if (error.code === '23505') {
             throw createError({
                 statusCode: 400,
-                statusMessage: 'Username già registrato',
+                statusMessage: 'Username già registrato'
             })
         }
-        throw e
+
+        throw createError({
+            statusCode: 500,
+            statusMessage: `Errore durante l'aggiornamento: ${error.message}`
+        })
     }
 
-    return {success: true}
+    return { success: true }
 })

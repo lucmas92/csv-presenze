@@ -4,9 +4,9 @@ import {defineStore} from 'pinia'
 export const useAuthStore = defineStore('auth', () => {
     // useCookie gestisce automaticamente la persistenza sia lato server che client
     const token = useCookie('auth_token', {
-        maxAge: 60 * 60 * 24, // Durata del cookie (es. 24 ore)
+        maxAge: 60 * 60, // Durata del cookie (es. 24 ore)
         sameSite: 'lax',
-        secure: true // Solo su HTTPS (in produzione)
+        secure: process.env.NODE_ENV === 'production' // Solo su HTTPS (in produzione)
     })
 
     const user = ref<any>(null)

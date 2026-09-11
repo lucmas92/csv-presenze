@@ -1,9 +1,18 @@
-import db from '../../db/client'
+import { serverSupabaseClient } from '#supabase/server'
 
-export default defineEventHandler(() => {
-    return db.prepare("SELECT u.name, p.status, COUNT(*) as giorni\n" +
-        "FROM presences p\n" +
-        "JOIN users u ON u.id = p.user_id\n" +
-        "GROUP BY p.user_id, u.name, p.status\n" +
-        "ORDER BY u.name, p.status").all()
+export default defineEventHandler(async (event) => {
+    const client = await serverSupabaseClient(event)
+
+    const { data, error } = await client
+        .from('user_status_breakdown')
+        .select('name, status, giorni')
+
+    if (error) {
+        throw createError({
+            statusCode: 500,
+            statusMessage: `Errore durante il recupero dei dati: ${error.message}`
+        })
+    }
+
+    return data
 })

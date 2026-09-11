@@ -1,6 +1,6 @@
-import db from '../db/client'
+import { serverSupabaseClient } from '#supabase/server'
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
     const query = getQuery(event)
 
     const from = query.fromQuery as string
@@ -10,10 +10,23 @@ export default defineEventHandler((event) => {
         return []
     }
 
-    const stmt = db.prepare(`
-    SELECT * FROM presences
-    WHERE date BETWEEN ? AND ?
-  `)
+    // 1. Inizializza il client Supabase lato server
+    const client = await serverSupabaseClient(event)
 
-    return stmt.all(from, to)
+    // 2. Sostituisci la query SQL con i metodi di Supabase (.gte e .lte per il range di date)
+    const { data, error } = await client
+        .from('presences')
+        .select('*')
+        .gte('date', from) // gte = Greater Than or Equal (>=)
+        .lte('date', to)   // lte = Less Than or Equal (<=)
+
+    if (error) {
+        throw createError({
+            statusCode: 500,
+            statusMessage: `Errore Supabase: ${error.message}`
+        })
+    }
+
+    // 3. Restituisci l'array dei risultati
+    return data
 })

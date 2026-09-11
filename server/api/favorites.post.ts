@@ -1,29 +1,44 @@
-import db from '../db/client'
-import {SqliteError} from "better-sqlite3";
+import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
 
     const currentUser = event.context.user
-
     const favorite_user_id = body?.favorite_user_id
 
-    const stmt = db.prepare(`
-        INSERT INTO user_favorites (user_id, favorite_user_id)
-        VALUES (?, ?)
-    `)
-
-    try {
-        const result = stmt.run(currentUser.id, favorite_user_id)
-    } catch (e) {
-        if (e instanceof SqliteError && e.code === 'SQLITE_CONSTRAINT_UNIQUE') {
-            throw createError({
-                statusCode: 400,
-                statusMessage: 'Preferito già registrato',
-            })
-        }
-        throw e
+    if (!currentUser?.id || !favorite_user_id) {
+        throw createError({
+            statusCode: 400,
+            statusMessage: 'Dati mancanti per l\'operazione'
+        })
     }
 
-    return {success: true}
+    // 1. Inizializziamo il client Supabase
+    const client = await serverSupabaseClient(event)
+
+    // 2. Inseriamo il record nella tabella user_favorites
+    const { error } = await client
+        .from('user_favorites')
+        .insert({
+            user_id: currentUser.id,
+            favorite_user_id: favorite_user_id
+        })
+
+    // 3. Gestione degli errori Supabase/PostgreSQL
+    if (error) {
+        // Codice PostgreSQL 23505 = unique_violation (chiave duplicata)
+        if (error.code === '23505') {
+            throw createError({
+                statusCode: 400,
+                statusMessage: 'Preferito già registrato'
+            })
+        }
+
+        throw createError({
+            statusCode: 500,
+            statusMessage: `Errore durante il salvataggio del preferito: ${error.message}`
+        })
+    }
+
+    return { success: true }
 })

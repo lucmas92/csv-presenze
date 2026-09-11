@@ -1,10 +1,19 @@
-import db from '../../db/client'
+import { serverSupabaseClient } from '#supabase/server'
 
-export default defineEventHandler(() => {
-    return db.prepare("SELECT u.name, u.role, COUNT(*) as giorni_ufficio\n" +
-        "  FROM presences p JOIN users u ON u.id = p.user_id\n" +
-        "  WHERE p.status = 'office'\n" +
-        "  GROUP BY p.user_id, u.name\n" +
-        "  ORDER BY giorni_ufficio DESC\n" +
-        "  LIMIT 5").all()
+export default defineEventHandler(async (event) => {
+    const client = await serverSupabaseClient(event)
+
+    const { data, error } = await client
+        .from('top_office_users')
+        .select('name, role, giorni_ufficio')
+        .limit(5)
+
+    if (error) {
+        throw createError({
+            statusCode: 500,
+            statusMessage: `Errore durante il recupero dei dati top utenti: ${error.message}`
+        })
+    }
+
+    return data
 })

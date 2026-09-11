@@ -1,14 +1,29 @@
-import db from '../db/client'
+import { serverSupabaseClient } from '#supabase/server'
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
     const query = getQuery(event)
 
-    const user_id = query.userId as number
+    const user_id = query.userId as string | number
 
-    const stmt = db.prepare(`
-    SELECT * FROM user_favorites
-    WHERE user_id = ?
-  `)
+    if (!user_id) {
+        return []
+    }
 
-    return stmt.all(user_id)
+    // 1. Inizializziamo il client Supabase lato server
+    const client = await serverSupabaseClient(event)
+
+    // 2. Eseguiamo la query sulla tabella user_favorites
+    const { data, error } = await client
+        .from('user_favorites')
+        .select('*')
+        .eq('user_id', user_id)
+
+    if (error) {
+        throw createError({
+            statusCode: 500,
+            statusMessage: `Errore durante il recupero dei preferiti: ${error.message}`
+        })
+    }
+
+    return data ?? []
 })

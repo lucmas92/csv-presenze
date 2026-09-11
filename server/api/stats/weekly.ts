@@ -1,12 +1,18 @@
-import db from '../../db/client'
+import { serverSupabaseClient } from '#supabase/server'
 
-export default defineEventHandler(() => {
-    return db.prepare("SELECT\n" +
-        "    strftime('%Y-%W', date) as settimana,\n" +
-        "    COUNT(*) as totale_presenze,\n" +
-        "    COUNT(DISTINCT user_id) as persone_diverse\n" +
-        "  FROM presences\n" +
-        "  WHERE status = 'office'\n" +
-        "  GROUP BY settimana\n" +
-        "  ORDER BY settimana").all()
+export default defineEventHandler(async (event) => {
+    const client = await serverSupabaseClient(event)
+
+    const { data, error } = await client
+        .from('weekly_office_stats')
+        .select('*')
+
+    if (error) {
+        throw createError({
+            statusCode: 500,
+            statusMessage: `Errore durante il recupero dei dati settimanali: ${error.message}`
+        })
+    }
+
+    return data
 })

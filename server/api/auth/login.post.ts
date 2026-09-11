@@ -1,12 +1,12 @@
-import db from "#server/db/client";
-import {verifyPassword} from "~/utils/password";
-import jwt from 'jsonwebtoken'
-import type { User } from '~/types/User'
+import {serverSupabaseClient} from '#supabase/server'
+import jwt from "jsonwebtoken";
+import {User} from "~/types/User";
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
+    const client = await serverSupabaseClient(event)
 
-    const username = typeof body?.username === 'string' ? body.username.trim() : ''
+    const username = typeof body?.username === 'string' ? body.username.trim().toLowerCase() : ''
     const password = typeof body?.password === 'string' ? body.password : ''
 
     if (!username || !password) {
@@ -16,33 +16,65 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    const users: User[] = db.prepare(`
-        SELECT *
-        FROM users
-        WHERE username = ? and role != 'guest'
-    `).all(username) as User[]
+    // const users: User[] = db.prepare(`
+    //     SELECT *
+    //     FROM users
+    //     WHERE username = ? and role != 'guest'
+    // `).all(username) as User[]
+    //
+    // const user = users[0] as User
+    // if (!user) {
+    //     throw createError({
+    //         statusCode: 401,
+    //         statusMessage: 'Credenziali non valide',
+    //     })
+    // }
+    //
+    // const valid = await verifyPassword(password, user.password_hash!)
+    //
+    // if (!valid) {
+    //     throw createError({
+    //         statusCode: 401,
+    //         statusMessage: 'Credenziali non valide',
+    //     })
+    // }
 
-    const user = users[0] as User
+
+    const emailFormatted = `${username}@sanmarcoinformatica.it`
+
+    const {data, error} = await client.auth.signInWithPassword({
+        email: emailFormatted,
+        password: password
+    })
+
+    if (error) {
+        console.error('Errore durante il login:', error.message)
+        throw createError({
+            statusCode: 401,
+            statusMessage: 'Login non riuscito',
+        })
+    }
+
+    const {data: user} = await client
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .single()
+
     if (!user) {
         throw createError({
             statusCode: 401,
-            statusMessage: 'Credenziali non valide',
+            statusMessage: 'Utente non trovato!',
         })
     }
 
-    const valid = await verifyPassword(password, user.password_hash!)
-
-    if (!valid) {
-        throw createError({
-            statusCode: 401,
-            statusMessage: 'Credenziali non valide',
-        })
-    }
+    // todo: provare a togliere JWT custom e tenere access_token supabase
+    // const token = data.session.access_token
 
     const config = useRuntimeConfig(event)
     const token = jwt.sign(
         {
-            userId: user.id,
+            userId: (user as User).id,
         },
         config.jwtSecret, // La chiave segreta definita nel nuxt.config
         {
@@ -53,7 +85,7 @@ export default defineEventHandler(async (event) => {
     setCookie(event, 'auth_token', token, {
         httpOnly: true, // Più sicuro, il JS del frontend non può leggerlo
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 24 // 1 giorno
+        maxAge: 60 * 60 // 1 ora
     })
 
     return {

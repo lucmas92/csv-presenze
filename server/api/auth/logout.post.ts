@@ -1,21 +1,36 @@
-import db from "#server/db/client";
-import jwt from "jsonwebtoken";
+import {serverSupabaseClient} from '#supabase/server'
 
 export default defineEventHandler(async (event) => {
 
-    const config = useRuntimeConfig(event)
-    const token = getCookie(event, 'auth_token')!
+    const client = await serverSupabaseClient(event)
 
     try {
-        const decoded = jwt.verify(token, config.jwtSecret) as unknown as { userId: number; username: string }
+        const userId = event.context.user['id']
 
-        const userId: number = decoded.userId
-        db.prepare("UPDATE users SET last_login_at = NULL WHERE id = ?").run(decoded.userId)
+        const { error: resetError } = await client
+            .from('users')
+            .update({ last_login_at: null })
+            .eq('id', userId)
+
+        if (resetError) {
+            throw createError({
+                statusCode: 500,
+                statusMessage: `Errore durante il reset dell'ultimo accesso: ${resetError.message}`
+            })
+        }
+
+        // Disconnette l'utente e cancella i cookie di sessione
+        const { error: authError } = await client.auth.signOut()
+
+        if (authError) {
+            console.error('Errore durante il logout:', authError.message)
+        }
     } catch (error) {
     }
 
     // Cancella il cookie impostando una data di scadenza passata
     deleteCookie(event, 'auth_token')
+
 
     return {success: true, message: 'Sessione eliminata correttamente'}
 })

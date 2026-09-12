@@ -6,7 +6,7 @@ definePageMeta({
 })
 import {
   Lock,
-  KeyRound
+  KeyRound, EyeOff, Eye
 } from 'lucide-vue-next'
 import Header from "~/components/Header.vue";
 
@@ -18,6 +18,8 @@ const currentPassword = ref("")
 const newPassword = ref("")
 const validateNewPassword = ref("")
 const errors = ref("")
+const showOldPassword = ref(false)
+const showNewPassword = ref(false)
 
 const isValid = computed(() => {
   return currentPassword.value && newPassword && validateNewPassword.value && newPassword.value === validateNewPassword.value
@@ -97,15 +99,17 @@ const updatePassword = async () => {
           <!-- Password Attuale -->
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Password Attuale</label>
-            <div class="relative">
+            <div class="relative flex gap-3 items-center">
                             <span
                                 class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
                                 <i data-lucide="lock" class="w-4 h-4"></i>
                             </span>
-              <input type="password" name="current_password" placeholder="••••••••" v-model.trim="currentPassword"
+              <input :type="showOldPassword ? 'text' : 'password'"  name="current_password" placeholder="••••••••" v-model.trim="currentPassword"
                      class="
-              w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm transition
+              w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm transition
               ">
+              <Eye class="cursor-pointer text-black" :size="18" v-if="!showOldPassword" @click="showOldPassword = !showOldPassword"/>
+              <EyeOff class="cursor-pointer text-black" :size="18" v-else @click="showOldPassword = !showOldPassword"/>
             </div>
           </div>
 
@@ -114,14 +118,12 @@ const updatePassword = async () => {
           <!-- Nuova Password -->
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Nuova Password</label>
-            <div class="relative">
-                            <span
-                                class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                                <i data-lucide="key" class="w-4 h-4"></i>
-                            </span>
-              <input type="password" name="new_password" id="new_password" v-model.trim="newPassword"
-                     placeholder="Minimo 8 caratteri" @keydown.enter="updatePassword"
-                     class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm transition">
+            <div class="relative flex gap-3 items-center">
+              <input :type="showNewPassword ? 'text' : 'password'" name="new_password" id="new_password" v-model.trim="newPassword"
+                     placeholder="Minimo 6 caratteri" @keydown.enter="updatePassword"
+                     class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm transition">
+              <Eye class="cursor-pointer text-black" :size="18" v-if="!showNewPassword" @click="showNewPassword = !showNewPassword"/>
+              <EyeOff class="cursor-pointer text-black" :size="18" v-else @click="showNewPassword = !showNewPassword"/>
             </div>
           </div>
 
@@ -129,18 +131,13 @@ const updatePassword = async () => {
           <div class="space-y-1.5">
             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Conferma Nuova
               Password</label>
-            <div class="relative">
-                            <span
-                                class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-                                <i data-lucide="check" class="w-4 h-4"></i>
-                            </span>
-              <input type="password" name="confirm_password" id="confirm_password" v-model.trim="validateNewPassword"
+            <div class="relative flex gap-3 items-center">
+              <input :type="showNewPassword ? 'text' : 'password'" name="confirm_password" id="confirm_password" v-model.trim="validateNewPassword"
                      placeholder="Ripeti la nuova password" @keydown.enter="updatePassword"
-                     class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm transition">
+                     class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-sm transition">
+              <Eye class="cursor-pointer text-black" :size="18" v-if="!showNewPassword" @click="showNewPassword = !showNewPassword"/>
+              <EyeOff class="cursor-pointer text-black" :size="18" v-else @click="showNewPassword = !showNewPassword"/>
             </div>
-            <p id="match_error" class="text-[11px] text-rose-500 font-medium hidden flex items-center gap-1">
-              <i data-lucide="alert-circle" class="w-3 h-3"></i> Le password non corrispondono.
-            </p>
           </div>
 
           <!-- Pulsante d'Azione Interno alla sezione -->

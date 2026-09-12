@@ -19,17 +19,19 @@ const defaultPasswords = ref(new Map())
 
 const {notifyError, notifySuccess} = useNotification();
 
-const {data: users, refresh: refreshUsers} = await useFetch('/api/users', {
+const {data: users, refresh: refreshUsers} = await useLazyFetch('/api/users', {
   query: {
     withGuests: 1
   }
 })
 
 const fetchDefaultPassword = () => {
-  users.value.forEach(async (u) => {
-    const def = u.is_default_password
-    defaultPasswords.value.set(u.id, {default: def})
-  })
+  if (users.value) {
+    users.value.forEach(async (u) => {
+      const def = u.is_default_password
+      defaultPasswords.value.set(u.id, {default: def})
+    })
+  }
 }
 
 onMounted(() => {
@@ -186,11 +188,44 @@ const closeSheets = () => {
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
               <Search class="text-gray-400"/>
             </span>
-      <input type="text" v-model="searchQuery" placeholder="Cerca collaboratore..."
-             class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition placeholder-slate-400">
+      <input type="text" :disabled="!users" v-model="searchQuery" placeholder="Cerca collaboratore..."
+             class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition placeholder-slate-400 disabled:bg-gray-200">
     </div>
     <div class="mx-1 md:mx-1 flex flex-wrap">
-      <div v-for="user in availableUsers" :key="user.id" class="basis-full md:basis-1/2 lg:basis-1/3 2xl:basis-1/4">
+      <!--      skeleton caricamento utenti-->
+      <div v-if="availableUsers[0].id === 0">
+        <div class="flex flex-wrap animate-pulse">
+          <div
+              v-for="i in 12"
+              :key="i"
+              class="basis-full md:basis-1/2 lg:basis-1/3 2xl:basis-1/4"
+          >
+            <div class="m-2 flex justify-between mb-2 rounded-lg p-2 bg-white relative border">
+              <div class="space-y-4 min-w-0">
+                <!-- Nome -->
+                <div class="space-y-2">
+                  <div class="h-3 w-12 rounded bg-slate-100"/>
+                  <div class="h-4 w-32 rounded bg-slate-200"/>
+                </div>
+                <!-- Username -->
+                <div class="space-y-2">
+                  <div class="h-3 w-16 rounded bg-slate-100"/>
+                  <div class="h-4 w-20 rounded bg-slate-200"/>
+                </div>
+              </div>
+
+              <!-- Icone azione -->
+              <div class="flex items-center gap-3 shrink-0">
+                <div class="h-5 w-5 rounded bg-slate-200"/>
+                <div class="h-5 w-5 rounded bg-slate-200"/>
+                <div class="h-5 w-5 rounded bg-slate-200"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else v-for="user in availableUsers" :key="user.id" class="basis-full md:basis-1/2 lg:basis-1/3 2xl:basis-1/4">
         <div
             class="m-2 flex justify-between mb-2 rounded-lg p-2 bg-white relative border">
           <span v-if="user.role==='guest'"

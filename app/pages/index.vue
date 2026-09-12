@@ -25,7 +25,6 @@ const selectedUserPresence = ref(null)
 const selectedUserNote = ref(null)
 const selectedDate = ref(null)
 const searchQuery = ref('')
-const loading = ref(false)
 const bottomSheetOpen = ref(false)
 const bottomSheetAddGuestOpen = ref(false)
 const today = ref(new Date().toLocaleDateString('sv-SE'))
@@ -83,10 +82,13 @@ const to = computed(() => {
       })
 })
 
-const {data: favorites, refresh: refreshFavorites} = await useFetch('/api/favorites', {query: {userId: user.value.id}})
+const {
+  data: favorites,
+  refresh: refreshFavorites
+} = await useLazyFetch('/api/favorites', {query: {userId: user.value.id}})
 
-const {data: users, refresh: refreshUsers} = await useFetch('/api/users')
-const {data: notesData, refresh: refreshNotes} = await useFetch('/api/notes', {
+const {data: users, refresh: refreshUsers} = await useLazyFetch('/api/users')
+const {data: notesData, refresh: refreshNotes} = await useLazyFetch('/api/notes', {
   query: {
     fromQuery,
     toQuery
@@ -109,7 +111,7 @@ watch(
 )
 
 // 📦 dati DB
-const {data: guests, refresh: refreshGuests} = await useFetch('/api/guests', {
+const {data: guests, refresh: refreshGuests} = await useLazyFetch('/api/guests', {
   query: {
     fromQuery,
     toQuery
@@ -132,11 +134,13 @@ const presences = computed(() => {
 })
 
 const presencesForUser = (user) => {
+  if (!presencesData.value)
+    return []
   return presencesData.value.filter(p => p.user_id === user.id);
 }
 
 // 📦 dati DB
-const {data: presencesData, refresh: refreshPresences} = await useFetch('/api/presences', {
+const {data: presencesData, refresh: refreshPresences} = await useLazyFetch('/api/presences', {
   query: {
     fromQuery,
     toQuery
@@ -179,17 +183,20 @@ const countOspiti = computed(() => {
 
 const guestsPerDay = computed(() => {
   const map = new Map()
-
-  for (const guest of guests.value) {
-    if (!map.has(guest.date)) {
-      map.set(guest.date, [])
+  if (guests.value) {
+    for (const guest of guests.value) {
+      if (!map.has(guest.date)) {
+        map.set(guest.date, [])
+      }
+      map.get(guest.date).push(guest)
     }
-    map.get(guest.date).push(guest)
   }
   return map
 })
 
 const totalPresences = (date) => {
+  if (!presencesData.value)
+    return
 
   let guests = 0
   let total = presencesData.value
@@ -296,16 +303,10 @@ const onSaveGuest = async (guest_name, date) => {
 }
 
 const favoriteUsers = computed(() => {
+  if (!users.value)
+    return []
   const idsDaRimuovere = new Set(favorites.value.map(item => item.favorite_user_id))
   return users.value.filter((u) => idsDaRimuovere.has(u.id)).sort((a, b) => a.name.localeCompare(b.name))
-})
-
-
-onBeforeMount(() => {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
-  }, 200)
 })
 
 // Opzionale: aggiorna la lista automaticamente ogni 30 secondi per vedere chi si connette/disconnette
@@ -428,13 +429,16 @@ const showAddGuest = (d) => {
               <span class="text-[9px] font-medium" style="line-height: .8rem">{{ dayMonth(d) }}</span>
             </button>
             <div class="text-center"
-                 :class="{'font-bold':totalPresences(d) == 10, 'text-red-600 font-bold' : totalPresences(d) > 10}">{{ totalPresences(d) }}</div>
+                 :class="{'font-bold':totalPresences(d) === 10, 'text-red-600 font-bold' : totalPresences(d) > 10}">
+              <div v-if="!presencesData" class="mx-auto mt-1 h-4 w-4 rounded bg-slate-200" />
+              {{ totalPresences(d) }}
+            </div>
           </div>
         </div>
       </template>
     </Header>
     <Transition name="fade">
-      <div class="w-100 mx-1 md:mx-3" v-if="!loading">
+      <div class="w-100 mx-1 md:mx-3">
         <div id="dashboard" class="grid m-2 grid-cols-2 lg:grid-cols-4 gap-3 items-center justify-center py-1">
           <Widget class="bg-green-100" :count="countByStatus['office'] ?? 0" description="Presenti">
             <Briefcase :size="20"/>
@@ -453,11 +457,41 @@ const showAddGuest = (d) => {
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
               <Search class="text-gray-400"/>
             </span>
-          <input type="text" v-model="searchQuery" placeholder="Cerca collaboratore..."
-                 class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition placeholder-slate-400">
+          <input type="text" :disabled="!users" v-model="searchQuery" placeholder="Cerca collaboratore..."
+                 class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition placeholder-slate-400 disabled:bg-gray-200">
         </div>
-        <div id="user-list">
+        <!--         skeleton caricamento utenti e presenze-->
+        <div v-if="availableUsers[0].id === 0">
+          <div class="space-y-4">
+            <div
+                v-for="r in 12"
+                :key="r"
+                class="rounded-2xl border border-slate-100 p-5"
+            >
+              <!-- Header riga: avatar, nome, presenze -->
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="h-10 w-10 rounded-full bg-slate-200 shrink-0" />
+                  <div class="h-4 w-40 rounded bg-slate-200" />
+                </div>
+                <div class="h-6 w-20 rounded-full bg-slate-100" />
+              </div>
 
+              <!-- Celle giorno -->
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div
+                    v-for="d in 5"
+                    :key="d"
+                    class="h-[74px] rounded-xl bg-slate-100 flex flex-col items-center justify-center gap-2"
+                >
+                  <div class="h-3 w-8 rounded bg-slate-200" />
+                  <div class="h-4 w-4 rounded bg-slate-200" />
+                </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        <div id="user-list" v-else>
           <UserPresenceRow
               :presencesData="presencesForUser(user)"
               :weekDays="weekDays"

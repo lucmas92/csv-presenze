@@ -6,7 +6,9 @@ export default defineNuxtConfig({
     devtools: {enabled: true},
     modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', '@nuxtjs/supabase'],
     runtimeConfig: {
-        jwtSecret: process.env.JWT_SECRET // Disponibile solo lato server
+        jwtSecret: process.env.JWT_SECRET, // Disponibile solo lato server
+        supabaseUrl: process.env.SUPABASE_URL,
+        supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY
     },
     supabase: {
         // Disabilita il reindirizzamento automatico alla pagina di login se non lo usi ancora

@@ -26,9 +26,10 @@ export default defineEventHandler(async (event) => {
     if (erroreDb || !utente) {
         throw new Error('Utente non trovato nel database')
     }
+    const config = useRuntimeConfig()
+    const supabaseServiceRoleKey = config.supabaseServiceRoleKey // Ora è disponibile e sicura!
+    const supabaseUrl = config.supabaseUrl // Ora è disponibile e sicura!
 
-    const supabaseUrl = process.env.SUPABASE_URL
-    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!supabaseUrl || !supabaseServiceRoleKey) {
         throw new Error('Errore reset password!')
     }

@@ -48,14 +48,14 @@ const handleInputPassword = (event) => {
                  @keydown.enter="submit"
                  @input="handleInputUsername"
                  type="text" name="username" placeholder="Username" v-model="username">
-          <span class="flex items-center gap-3">
-            <input class="p-4 text-base flex-1"
+          <span class="relative items-center">
+            <input class="p-4 text-base w-full pr-12"
                    autocomplete="off"
                    @keydown.enter="submit"
                    @input="handleInputPassword"
                    :type="showPassword ? 'text' : 'password'" name="password" placeholder="Password" v-model="password">
-            <Eye class="cursor-pointer text-white" :size="18" v-if="!showPassword" @click="showPassword = !showPassword"/>
-            <EyeOff class="cursor-pointer text-white" :size="18"  v-else @click="showPassword = !showPassword"/>
+            <Eye class="absolute right-4 top-0 translate-y-3/4 cursor-pointer text-black" :size="18" v-if="!showPassword" @click="showPassword = !showPassword"/>
+            <EyeOff class="absolute right-4 top-0 translate-y-3/4  cursor-pointer text-black" :size="18"  v-else @click="showPassword = !showPassword"/>
           </span>
           <span class="bg-red-400 text-white text-center rounded-xl">
             {{ errors }}

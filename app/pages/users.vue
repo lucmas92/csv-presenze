@@ -193,7 +193,7 @@ const closeSheets = () => {
     </div>
     <div class="mx-1 md:mx-1 flex flex-wrap">
       <!--      skeleton caricamento utenti-->
-      <div v-if="availableUsers[0].id === 0">
+      <div v-if="availableUsers && availableUsers[0] && availableUsers[0].id === 0">
         <div class="flex flex-wrap animate-pulse">
           <div
               v-for="i in 12"

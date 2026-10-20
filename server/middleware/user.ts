@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
 
         } catch (error) {
 
-            console.log('user.error:', error)
+            console.error('user.error:', error)
 
             // Se il token è scaduto o alterato, puliamo il cookie
             // deleteCookie(event, 'auth_token')

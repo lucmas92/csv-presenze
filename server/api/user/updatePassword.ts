@@ -37,8 +37,6 @@ export default defineEventHandler(async (event) => {
     })
 
     if (error) {
-        console.log('updatePassword.error', error)
-        console.log('updatePassword.error.code', error.code)
         const authErrorMessages: Record<string, string> = {
             invalid_credentials: 'Email o password non corretti.',
             email_not_confirmed: 'Devi confermare la tua email prima di accedere.',

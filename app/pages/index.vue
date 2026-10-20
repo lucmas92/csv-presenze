@@ -176,7 +176,7 @@ const availableUsers = computed(() => {
 })
 
 const countOspiti = computed(() => {
-  if (!guests.value) return {}
+  if (!guests.value) return 0
   return (guestsPerDay.value.get(today.value) || []).length
 })
 
@@ -340,8 +340,11 @@ const count = async (date) => {
   })
 }
 
+const loading = ref({})
+
 const onSetStatus = async (userId, date, status, isInMeeting, isEatingOut, close = true) => {
 
+  loading.value = {[userId]: true}
 
   const key = `${userId}-${date}`
 
@@ -377,6 +380,8 @@ const onSetStatus = async (userId, date, status, isInMeeting, isEatingOut, close
   await refreshPresences()
   if (close)
     closeSheets()
+
+  loading.value = {}
 }
 
 const showAddGuest = (d) => {
@@ -461,7 +466,7 @@ const showAddGuest = (d) => {
                  class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition placeholder-slate-400 disabled:bg-gray-200">
         </div>
         <!--         skeleton caricamento utenti e presenze-->
-        <div v-if="availableUsers[0].id === 0">
+        <div v-if="availableUsers && availableUsers[0] && availableUsers[0].id === 0">
           <div class="space-y-4">
             <div
                 v-for="r in 12"
@@ -499,6 +504,7 @@ const showAddGuest = (d) => {
               :currentUser="true"
               :notes="notesDraft"
               :user="{...user}"
+              :loading="loading[user.id] ?? false"
               @setStatus="onSetStatus"
               @openSheet="openSheet"
           />
@@ -514,6 +520,7 @@ const showAddGuest = (d) => {
                 :notes="notesDraft"
                 :user="favorite"
                 :isFavorite="true"
+                :loading="loading[favorite.id] ?? false"
                 @openSheet="openSheet"
                 @setStatus="onSetStatus"
                 @refreshFavorites="refreshFavorites"
@@ -528,6 +535,7 @@ const showAddGuest = (d) => {
               :today="today"
               :notes="notesDraft"
               :user="user"
+              :loading="loading[user.id] ?? false"
               @openSheet="openSheet"
               @setStatus="onSetStatus"
               @refreshFavorites="refreshFavorites"

@@ -16,33 +16,9 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    // const users: User[] = db.prepare(`
-    //     SELECT *
-    //     FROM users
-    //     WHERE username = ? and role != 'guest'
-    // `).all(username) as User[]
-    //
-    // const user = users[0] as User
-    // if (!user) {
-    //     throw createError({
-    //         statusCode: 401,
-    //         statusMessage: 'Credenziali non valide',
-    //     })
-    // }
-    //
-    // const valid = await verifyPassword(password, user.password_hash!)
-    //
-    // if (!valid) {
-    //     throw createError({
-    //         statusCode: 401,
-    //         statusMessage: 'Credenziali non valide',
-    //     })
-    // }
-
-
     const emailFormatted = `${username}@sanmarcoinformatica.it`
 
-    const {data, error} = await client.auth.signInWithPassword({
+    const {error} = await client.auth.signInWithPassword({
         email: emailFormatted,
         password: password
     })
